@@ -1,4 +1,15 @@
-import { addDays, format, startOfWeek, parseISO, isValid } from "date-fns";
+import {
+  addDays,
+  format,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  addMonths,
+  isSameMonth,
+  parseISO,
+  isValid,
+} from "date-fns";
 
 export function toISODate(date: Date): string {
   return format(date, "yyyy-MM-dd");
@@ -46,3 +57,47 @@ export function formatWeekRangeLabel(monday: Date, days: WeekDay[]): string {
   const last = days[days.length - 1]?.date ?? monday;
   return `${format(monday, "yyyy년 M월 d일")} ~ ${format(last, "M월 d일")}`;
 }
+
+export function parseMonthParam(month: string | undefined): Date {
+  if (month) {
+    const parsed = parseISO(`${month}-01`);
+    if (isValid(parsed)) return startOfMonth(parsed);
+  }
+  return startOfMonth(new Date());
+}
+
+export function toMonthParam(date: Date): string {
+  return format(date, "yyyy-MM");
+}
+
+export function formatMonthLabel(monthStart: Date): string {
+  return format(monthStart, "yyyy년 M월");
+}
+
+export type CalendarDay = {
+  date: Date;
+  iso: string;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isPast: boolean;
+};
+
+export function buildMonthGrid(monthStart: Date): CalendarDay[] {
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const gridEnd = endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 });
+  const todayIso = toISODate(new Date());
+  const days: CalendarDay[] = [];
+  for (let cursor = gridStart; cursor <= gridEnd; cursor = addDays(cursor, 1)) {
+    const iso = toISODate(cursor);
+    days.push({
+      date: cursor,
+      iso,
+      isCurrentMonth: isSameMonth(cursor, monthStart),
+      isToday: iso === todayIso,
+      isPast: iso < todayIso,
+    });
+  }
+  return days;
+}
+
+export { addMonths };

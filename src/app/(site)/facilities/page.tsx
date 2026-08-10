@@ -48,38 +48,48 @@ export default async function FacilitiesPage({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((facility) => (
-            <Link
+            <div
               key={facility.id}
-              href={`/facilities/${facility.id}`}
-              className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md"
+              className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <div className="flex items-center gap-3">
-                <span
-                  className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
-                  style={{ backgroundColor: `${facility.color}1a` }}
-                >
-                  {facility.icon}
-                </span>
-                <div>
-                  <p className="font-semibold text-slate-900 group-hover:text-blue-700">
-                    {facility.name}
-                  </p>
+              <Link
+                href={`/facilities/${facility.id}/calendar`}
+                title="월별 예약 현황 보기"
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-blue-600"
+              >
+                📅
+              </Link>
+              <Link href={`/facilities/${facility.id}`} className="flex flex-col">
+                <div className="flex items-center gap-3 pr-8">
                   <span
-                    className="mt-0.5 inline-block rounded px-1.5 py-0.5 text-[11px] font-medium"
-                    style={{ backgroundColor: `${facility.color}1a`, color: facility.color }}
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
+                    style={{ backgroundColor: `${facility.color}1a` }}
                   >
-                    {facility.category}
+                    {facility.icon}
                   </span>
+                  <div>
+                    <p className="font-semibold text-slate-900 group-hover:text-blue-700">
+                      {facility.name}
+                    </p>
+                    <span
+                      className="mt-0.5 inline-block rounded px-1.5 py-0.5 text-[11px] font-medium"
+                      style={{ backgroundColor: `${facility.color}1a`, color: facility.color }}
+                    >
+                      {facility.category}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              {facility.description && (
-                <p className="mt-3 line-clamp-2 text-sm text-slate-500">{facility.description}</p>
-              )}
-              <div className="mt-4 flex items-center gap-4 text-xs text-slate-400">
-                {facility.location && <span>📍 {facility.location}</span>}
-                {facility.capacity && <span>👥 {facility.capacity}명</span>}
-              </div>
-            </Link>
+                {facility.description && (
+                  <p className="mt-3 line-clamp-2 text-sm text-slate-500">
+                    {facility.description}
+                  </p>
+                )}
+                <div className="mt-4 flex items-center gap-4 text-xs text-slate-400">
+                  {facility.location && <span>📍 {facility.location}</span>}
+                  {facility.capacity && <span>👥 {facility.capacity}명</span>}
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       )}

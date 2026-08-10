@@ -75,6 +75,12 @@ export default async function FacilityDetailPage({
         <h2 className="text-lg font-bold text-slate-900">주간 예약 시간표</h2>
         <div className="flex items-center gap-2">
           <Link
+            href={`/facilities/${id}/calendar`}
+            className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+          >
+            📅 월별 현황
+          </Link>
+          <Link
             href={`/facilities/${id}?week=${prevWeekIso}`}
             className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
           >
