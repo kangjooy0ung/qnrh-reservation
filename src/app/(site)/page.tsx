@@ -4,16 +4,20 @@ import { getNotices } from "@/lib/data/notices";
 
 export const dynamic = "force-dynamic";
 
-const STEPS = [
-  { title: "시설 선택", desc: "예약할 시설(강당, 체육관, 특별실 등)을 골라주세요." },
-  { title: "요일·교시 선택", desc: "주간 시간표에서 비어 있는 칸을 클릭하세요." },
-  { title: "이름 입력 후 예약", desc: "성함과 사용 목적을 입력하면 바로 예약이 확정됩니다." },
-];
-
 export default async function HomePage() {
   const [facilities, notices] = await Promise.all([getFacilities(), getNotices()]);
   const topFacilities = facilities.slice(0, 6);
   const topNotices = notices.slice(0, 3);
+
+  const exampleNames = facilities.slice(0, 3).map((f) => f.name);
+  const exampleList = exampleNames.length > 0 ? exampleNames.join(", ") : "강당, 체육관, 특별실";
+  const exampleListDot = exampleNames.length > 0 ? exampleNames.join("·") : "강당·체육관·특별실";
+
+  const steps = [
+    { title: "시설 선택", desc: `예약할 시설(${exampleList} 등)을 골라주세요.` },
+    { title: "요일·교시 선택", desc: "주간 시간표에서 비어 있는 칸을 클릭하세요." },
+    { title: "이름 입력 후 예약", desc: "성함과 사용 목적을 입력하면 바로 예약이 확정됩니다." },
+  ];
 
   return (
     <div className="flex flex-col gap-14">
@@ -24,7 +28,7 @@ export default async function HomePage() {
           </p>
           <h1 className="mt-1.5 text-xl font-bold sm:text-2xl">교내 시설 예약</h1>
           <p className="mt-1.5 text-sm text-emerald-100">
-            강당·체육관·특별실 등을 사용하실 선생님은 요일·교시를 선택해 예약해 주세요.
+            {exampleListDot} 등을 사용하실 선생님은 요일·교시를 선택해 예약해 주세요.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
@@ -45,7 +49,7 @@ export default async function HomePage() {
 
       <section>
         <div className="grid gap-4 sm:grid-cols-3">
-          {STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <div key={step.title} className="rounded-2xl border border-slate-200 bg-white p-5">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
                 {i + 1}

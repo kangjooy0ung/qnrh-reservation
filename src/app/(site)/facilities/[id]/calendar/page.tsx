@@ -25,16 +25,15 @@ export default async function FacilityCalendarPage({
   const { id } = await params;
   const { month } = await searchParams;
 
-  const facility = await getFacility(id);
-  if (!facility) notFound();
-
   const monthStart = parseMonthParam(month);
   const days = buildMonthGrid(monthStart);
 
-  const [timeSlots, reservations] = await Promise.all([
+  const [facility, timeSlots, reservations] = await Promise.all([
+    getFacility(id),
     getTimeSlots(),
     getReservationsForFacilityInRange(id, days[0].iso, days[days.length - 1].iso),
   ]);
+  if (!facility) notFound();
 
   const countByDate = new Map<string, number>();
   for (const r of reservations) {
