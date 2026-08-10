@@ -22,8 +22,8 @@ export function SiteHeader() {
             <rect x="14" y="20" width="4" height="5.5" rx="0.6" fill="#059669" />
           </svg>
           <span className="flex items-baseline gap-1.5">
-            <span className="text-sm font-semibold text-slate-500">부평고</span>
-            <span className="text-xl font-extrabold tracking-tight text-black">예약콕</span>
+            <span className="text-lg font-bold tracking-tight text-slate-900">부평고</span>
+            <span className="text-xl font-extrabold tracking-tight text-emerald-600">예약콕</span>
           </span>
         </Link>
 
