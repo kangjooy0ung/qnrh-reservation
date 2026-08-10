@@ -17,7 +17,7 @@ export function SiteHeader() {
             🏫
           </span>
           <span className="text-base font-bold tracking-tight text-slate-900">
-            자리ON <span className="font-normal text-slate-400">| 시설예약</span>
+            부평고 예약콕 <span className="font-normal text-slate-400">| 시설예약</span>
           </span>
         </Link>
 

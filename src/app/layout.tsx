@@ -8,7 +8,7 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "자리ON | 학교 시설 예약",
+  title: "부평고 예약콕 | 학교 시설 예약",
   description: "선생님 전용 학교 시설 예약 시스템",
 };
 
