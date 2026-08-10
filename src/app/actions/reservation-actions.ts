@@ -9,14 +9,14 @@ export async function createReservation(
   formData: FormData
 ): Promise<ActionState> {
   const facilityId = String(formData.get("facility_id") ?? "").trim();
-  const timeSlotId = String(formData.get("time_slot_id") ?? "").trim();
+  const timeSlotIds = formData.getAll("time_slot_id").map((v) => String(v).trim()).filter(Boolean);
   const reservationDate = String(formData.get("reservation_date") ?? "").trim();
   const teacherName = String(formData.get("teacher_name") ?? "").trim();
   const department = String(formData.get("department") ?? "").trim();
   const purpose = String(formData.get("purpose") ?? "").trim();
   const contact = String(formData.get("contact") ?? "").trim();
 
-  if (!facilityId || !timeSlotId || !reservationDate) {
+  if (!facilityId || timeSlotIds.length === 0 || !reservationDate) {
     return { status: "error", message: "예약 정보가 올바르지 않습니다. 다시 시도해 주세요." };
   }
   if (!teacherName) {
@@ -35,29 +35,53 @@ export async function createReservation(
   }
 
   const supabase = getSupabaseServer();
-  const { error } = await supabase.from("reservations").insert({
-    facility_id: facilityId,
-    time_slot_id: timeSlotId,
-    reservation_date: reservationDate,
-    teacher_name: teacherName,
-    department: department || null,
-    purpose: purpose || null,
-    contact: contact || null,
-  });
+  let successCount = 0;
+  let duplicateCount = 0;
+  let otherErrorMessage: string | null = null;
 
-  if (error) {
-    if (error.code === "23505") {
-      return {
-        status: "error",
-        message: "다른 선생님이 방금 먼저 예약했어요. 목록을 새로고침한 뒤 다시 시도해 주세요.",
-      };
+  for (const timeSlotId of timeSlotIds) {
+    const { error } = await supabase.from("reservations").insert({
+      facility_id: facilityId,
+      time_slot_id: timeSlotId,
+      reservation_date: reservationDate,
+      teacher_name: teacherName,
+      department: department || null,
+      purpose: purpose || null,
+      contact: contact || null,
+    });
+
+    if (!error) {
+      successCount += 1;
+    } else if (error.code === "23505") {
+      duplicateCount += 1;
+    } else {
+      otherErrorMessage = error.message;
     }
-    return { status: "error", message: `예약에 실패했습니다: ${error.message}` };
   }
 
   revalidatePath(`/facilities/${facilityId}`);
   revalidatePath("/reservations");
-  return { status: "success", message: "예약이 완료되었습니다." };
+
+  if (successCount === timeSlotIds.length) {
+    return {
+      status: "success",
+      message:
+        timeSlotIds.length > 1 ? `${successCount}개 교시 예약이 완료되었습니다.` : "예약이 완료되었습니다.",
+    };
+  }
+  if (successCount > 0) {
+    return {
+      status: "success",
+      message: `${successCount}개 교시 예약 완료, ${duplicateCount}개 교시는 다른 선생님이 먼저 예약해 제외되었습니다.`,
+    };
+  }
+  if (duplicateCount > 0) {
+    return {
+      status: "error",
+      message: "선택한 교시가 이미 예약되어 있습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.",
+    };
+  }
+  return { status: "error", message: `예약에 실패했습니다: ${otherErrorMessage ?? "알 수 없는 오류"}` };
 }
 
 export async function cancelReservation(

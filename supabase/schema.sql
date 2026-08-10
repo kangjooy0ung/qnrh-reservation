@@ -23,7 +23,7 @@ create table if not exists facilities (
 -- 교시/시간대 (1교시, 방과후 등 관리자가 편집 가능)
 create table if not exists time_slots (
   id uuid primary key default gen_random_uuid(),
-  label text not null,
+  label text not null unique,
   start_time time not null,
   end_time time not null,
   sort_order int not null default 0,
@@ -84,7 +84,7 @@ insert into time_slots (label, start_time, end_time, sort_order) values
   ('6교시', '14:40', '15:30', 7),
   ('7교시', '15:40', '16:30', 8),
   ('방과후', '16:40', '18:00', 9)
-on conflict do nothing;
+on conflict (label) do nothing;
 
 -- 기본 시설 예시 데이터 (원하는 대로 관리자 페이지에서 수정/삭제 가능)
 insert into facilities (name, category, location, capacity, description, icon, color, sort_order) values

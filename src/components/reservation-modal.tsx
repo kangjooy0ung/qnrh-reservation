@@ -9,17 +9,24 @@ export function ReservationModal({
   facilityId,
   facilityName,
   day,
-  slot,
+  slots,
   reservation,
   onClose,
 }: {
   facilityId: string;
   facilityName: string;
   day: TimetableDay;
-  slot: TimetableSlot;
+  slots: TimetableSlot[];
   reservation: TimetableReservation | null;
   onClose: () => void;
 }) {
+  const first = slots[0];
+  const last = slots[slots.length - 1];
+  const slotLabel =
+    slots.length > 1
+      ? `${first.label}~${last.label} (총 ${slots.length}개 교시, ${first.start_time}~${last.end_time})`
+      : `${first.label} (${first.start_time}~${first.end_time})`;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 sm:items-center sm:p-4"
@@ -32,8 +39,7 @@ export function ReservationModal({
         <div className="mb-4 flex items-start justify-between">
           <div>
             <p className="text-xs font-medium text-slate-400">
-              {facilityName} · {day.label}요일 {day.monthDay} · {slot.label} ({slot.start_time}~
-              {slot.end_time})
+              {facilityName} · {day.label}요일 {day.monthDay} · {slotLabel}
             </p>
             <h3 className="mt-1 text-lg font-bold text-slate-900">
               {reservation ? "예약 정보" : "시설 예약하기"}
@@ -52,7 +58,7 @@ export function ReservationModal({
         {reservation ? (
           <CancelForm reservation={reservation} onClose={onClose} />
         ) : (
-          <CreateForm facilityId={facilityId} day={day} slot={slot} onClose={onClose} />
+          <CreateForm facilityId={facilityId} day={day} slots={slots} onClose={onClose} />
         )}
       </div>
     </div>
@@ -62,12 +68,12 @@ export function ReservationModal({
 function CreateForm({
   facilityId,
   day,
-  slot,
+  slots,
   onClose,
 }: {
   facilityId: string;
   day: TimetableDay;
-  slot: TimetableSlot;
+  slots: TimetableSlot[];
   onClose: () => void;
 }) {
   const [state, formAction, isPending] = useActionState(createReservation, initialActionState);
@@ -91,8 +97,10 @@ function CreateForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="facility_id" value={facilityId} />
-      <input type="hidden" name="time_slot_id" value={slot.id} />
       <input type="hidden" name="reservation_date" value={day.iso} />
+      {slots.map((slot) => (
+        <input key={slot.id} type="hidden" name="time_slot_id" value={slot.id} />
+      ))}
 
       <Field label="예약자 성함 *">
         <input
@@ -127,7 +135,11 @@ function CreateForm({
         disabled={isPending}
         className="mt-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
       >
-        {isPending ? "예약 처리 중..." : "예약 확정하기"}
+        {isPending
+          ? "예약 처리 중..."
+          : slots.length > 1
+            ? `${slots.length}개 교시 예약 확정하기`
+            : "예약 확정하기"}
       </button>
     </form>
   );
