@@ -16,7 +16,7 @@ export function SiteFooter() {
           부평고 예약콕
         </span>
         <span className="text-slate-200">|</span>
-        <span>이용 중 문제가 있으면 행정실 또는 정보부로 문의해 주세요.</span>
+        <span>이용 중 문제가 있으면 정보교육부로 문의해 주세요.</span>
         <span className="text-slate-200">|</span>
         <span>© {year} 부평고 예약콕. All Rights Reserved.</span>
       </div>
