@@ -12,12 +12,18 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-lg text-white">
-            🏫
-          </span>
-          <span className="text-base font-bold tracking-tight text-slate-900">
-            부평고 예약콕 <span className="font-normal text-slate-400">| 시설예약</span>
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <svg viewBox="0 0 32 32" className="h-9 w-9 shrink-0" aria-hidden="true">
+            <rect width="32" height="32" rx="8" fill="#2563eb" />
+            <path d="M16 6.5 6.5 15h19z" fill="#ffffff" />
+            <rect x="7.5" y="15" width="17" height="10.5" rx="1" fill="#ffffff" />
+            <rect x="9.5" y="17.5" width="3" height="3" rx="0.6" fill="#2563eb" />
+            <rect x="19.5" y="17.5" width="3" height="3" rx="0.6" fill="#2563eb" />
+            <rect x="14" y="20" width="4" height="5.5" rx="0.6" fill="#2563eb" />
+          </svg>
+          <span className="flex items-baseline gap-1.5">
+            <span className="text-sm font-semibold text-slate-500">부평고</span>
+            <span className="text-xl font-extrabold tracking-tight text-black">예약콕</span>
           </span>
         </Link>
 
