@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ReservationModal } from "@/components/reservation-modal";
 
 export type TimetableSlot = {
@@ -52,8 +52,6 @@ export function WeeklyTimetable({
 }) {
   const [selected, setSelected] = useState<Selection | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
-  const dragRef = useRef<DragState | null>(null);
-  dragRef.current = drag;
 
   const reservationMap = useMemo(() => {
     const map = new Map<string, TimetableReservation>();
@@ -88,7 +86,7 @@ export function WeeklyTimetable({
     }
 
     function extendDrag(clientX: number, clientY: number) {
-      const current = dragRef.current;
+      const current = drag;
       if (!current) return;
       const cell = resolveCell(clientX, clientY);
       if (!cell) return;
@@ -118,7 +116,7 @@ export function WeeklyTimetable({
     }
 
     function handlePointerUp() {
-      const current = dragRef.current;
+      const current = drag;
       if (current) {
         const day = weekDays.find((d) => d.iso === current.dayIso);
         if (day) {
