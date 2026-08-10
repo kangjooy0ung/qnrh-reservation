@@ -61,10 +61,7 @@ export default async function FacilitiesPage({
               </Link>
               <Link href={`/facilities/${facility.id}`} className="flex flex-col">
                 <div className="flex items-center gap-3 pr-8">
-                  <span
-                    className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
-                    style={{ backgroundColor: `${facility.color}1a` }}
-                  >
+                  <span className="text-3xl leading-none" aria-hidden="true">
                     {facility.icon}
                   </span>
                   <div>

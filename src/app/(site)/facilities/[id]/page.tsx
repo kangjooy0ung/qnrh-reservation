@@ -48,10 +48,7 @@ export default async function FacilityDetailPage({
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span
-            className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl"
-            style={{ backgroundColor: `${facility.color}1a` }}
-          >
+          <span className="text-4xl leading-none" aria-hidden="true">
             {facility.icon}
           </span>
           <div>

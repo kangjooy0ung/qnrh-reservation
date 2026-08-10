@@ -56,10 +56,7 @@ export default async function FacilityCalendarPage({
       </Link>
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
-        <span
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
-          style={{ backgroundColor: `${facility.color}1a` }}
-        >
+        <span className="text-3xl leading-none" aria-hidden="true">
           {facility.icon}
         </span>
         <div>

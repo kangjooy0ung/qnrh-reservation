@@ -17,29 +17,26 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-14">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-14 text-white sm:px-12">
-        <p className="text-sm font-semibold uppercase tracking-widest text-blue-100">
-          Teacher Only · 선생님 전용
-        </p>
-        <h1 className="mt-3 max-w-2xl text-3xl font-bold leading-tight sm:text-4xl">
-          학교 시설, 로그인 없이
-          <br />
-          빠르게 예약하세요.
-        </h1>
-        <p className="mt-4 max-w-xl text-blue-100">
-          강당·체육관·특별실 등 교내 시설을 요일·교시 단위로 확인하고, 이름만 입력하면 바로 예약할
-          수 있습니다.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+      <section className="flex flex-col gap-4 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-7 text-white sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-100">
+            교사용 시설 예약 시스템
+          </p>
+          <h1 className="mt-1.5 text-xl font-bold sm:text-2xl">교내 시설 예약</h1>
+          <p className="mt-1.5 text-sm text-blue-100">
+            강당·체육관·특별실 등을 사용하실 선생님은 요일·교시를 선택해 예약해 주세요.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
           <Link
             href="/facilities"
-            className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50"
+            className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50"
           >
             시설 예약하기
           </Link>
           <Link
             href="/reservations"
-            className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+            className="rounded-full border border-white/40 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
           >
             내 예약 확인
           </Link>
@@ -80,10 +77,7 @@ export default async function HomePage() {
                 className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex items-center gap-3">
-                  <span
-                    className="flex h-11 w-11 items-center justify-center rounded-xl text-xl"
-                    style={{ backgroundColor: `${facility.color}1a` }}
-                  >
+                  <span className="text-3xl leading-none" aria-hidden="true">
                     {facility.icon}
                   </span>
                   <div>
