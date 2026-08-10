@@ -64,7 +64,7 @@ export function FacilityForm({ facility }: { facility?: Facility }) {
           <input
             type="color"
             name="color"
-            defaultValue={facility?.color ?? "#2563eb"}
+            defaultValue={facility?.color ?? "#059669"}
             className="h-10 w-full rounded-lg border border-slate-200"
           />
         </Field>
@@ -105,7 +105,7 @@ export function FacilityForm({ facility }: { facility?: Facility }) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+          className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
         >
           {isPending ? "저장 중..." : "저장하기"}
         </button>

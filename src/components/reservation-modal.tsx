@@ -133,7 +133,7 @@ function CreateForm({
       <button
         type="submit"
         disabled={isPending}
-        className="mt-2 rounded-xl bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+        className="mt-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
       >
         {isPending
           ? "예약 처리 중..."

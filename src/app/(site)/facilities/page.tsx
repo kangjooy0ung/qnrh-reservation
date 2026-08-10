@@ -32,7 +32,7 @@ export default async function FacilitiesPage({
               key={c}
               href={c === "전체" ? "/facilities" : `/facilities?category=${encodeURIComponent(c)}`}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-                active ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
+                active ? "bg-emerald-600 text-white" : "bg-white text-slate-600 hover:bg-slate-100"
               } border border-slate-200`}
             >
               {c}
@@ -55,7 +55,7 @@ export default async function FacilitiesPage({
               <Link
                 href={`/facilities/${facility.id}/calendar`}
                 title="월별 예약 현황 보기"
-                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-blue-600"
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-emerald-600"
               >
                 📅
               </Link>
@@ -65,7 +65,7 @@ export default async function FacilitiesPage({
                     {facility.icon}
                   </span>
                   <div>
-                    <p className="font-semibold text-slate-900 group-hover:text-blue-700">
+                    <p className="font-semibold text-slate-900 group-hover:text-emerald-700">
                       {facility.name}
                     </p>
                     <span

@@ -20,7 +20,7 @@ export default function GlobalError({
       </p>
       <button
         onClick={reset}
-        className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+        className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
       >
         다시 시도
       </button>

@@ -17,20 +17,20 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-14">
-      <section className="flex flex-col gap-4 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-7 text-white sm:flex-row sm:items-center sm:justify-between sm:px-8">
+      <section className="flex flex-col gap-4 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 px-6 py-7 text-white sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-100">
+          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">
             교사용 시설 예약 시스템
           </p>
           <h1 className="mt-1.5 text-xl font-bold sm:text-2xl">교내 시설 예약</h1>
-          <p className="mt-1.5 text-sm text-blue-100">
+          <p className="mt-1.5 text-sm text-emerald-100">
             강당·체육관·특별실 등을 사용하실 선생님은 요일·교시를 선택해 예약해 주세요.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Link
             href="/facilities"
-            className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:bg-blue-50"
+            className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50"
           >
             시설 예약하기
           </Link>
@@ -47,7 +47,7 @@ export default async function HomePage() {
         <div className="grid gap-4 sm:grid-cols-3">
           {STEPS.map((step, i) => (
             <div key={step.title} className="rounded-2xl border border-slate-200 bg-white p-5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white">
                 {i + 1}
               </span>
               <h3 className="mt-3 font-semibold text-slate-900">{step.title}</h3>
@@ -60,7 +60,7 @@ export default async function HomePage() {
       <section>
         <div className="mb-4 flex items-end justify-between">
           <h2 className="text-xl font-bold text-slate-900">예약 가능한 시설</h2>
-          <Link href="/facilities" className="text-sm font-medium text-blue-600 hover:underline">
+          <Link href="/facilities" className="text-sm font-medium text-emerald-600 hover:underline">
             전체 보기 →
           </Link>
         </div>
@@ -81,7 +81,7 @@ export default async function HomePage() {
                     {facility.icon}
                   </span>
                   <div>
-                    <p className="font-semibold text-slate-900 group-hover:text-blue-700">
+                    <p className="font-semibold text-slate-900 group-hover:text-emerald-700">
                       {facility.name}
                     </p>
                     <p className="text-xs text-slate-400">{facility.location ?? facility.category}</p>
@@ -99,7 +99,7 @@ export default async function HomePage() {
       <section>
         <div className="mb-4 flex items-end justify-between">
           <h2 className="text-xl font-bold text-slate-900">공지사항</h2>
-          <Link href="/notices" className="text-sm font-medium text-blue-600 hover:underline">
+          <Link href="/notices" className="text-sm font-medium text-emerald-600 hover:underline">
             전체 보기 →
           </Link>
         </div>

@@ -44,7 +44,7 @@ export default async function AdminDashboardPage() {
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-lg font-bold text-slate-900">다가오는 예약 (7일 이내)</h2>
-        <Link href="/admin/reservations" className="text-sm font-medium text-blue-600 hover:underline">
+        <Link href="/admin/reservations" className="text-sm font-medium text-emerald-600 hover:underline">
           전체 예약 관리 →
         </Link>
       </div>

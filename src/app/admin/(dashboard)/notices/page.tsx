@@ -17,7 +17,7 @@ export default async function AdminNoticesPage() {
         </div>
         <Link
           href="/admin/notices/new"
-          className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+          className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
         >
           + 새 공지 작성
         </Link>

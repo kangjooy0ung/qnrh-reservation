@@ -31,7 +31,7 @@ export default async function MyReservationsPage({
         />
         <button
           type="submit"
-          className="shrink-0 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="shrink-0 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
         >
           검색
         </button>

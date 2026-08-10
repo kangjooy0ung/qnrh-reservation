@@ -52,7 +52,7 @@ export function NoticeForm({ notice }: { notice?: Notice }) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+          className="rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
         >
           {isPending ? "저장 중..." : "저장하기"}
         </button>

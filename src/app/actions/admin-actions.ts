@@ -60,7 +60,7 @@ export async function upsertFacility(
   const capacityRaw = String(formData.get("capacity") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const icon = String(formData.get("icon") ?? "🏫").trim() || "🏫";
-  const color = String(formData.get("color") ?? "#2563eb").trim();
+  const color = String(formData.get("color") ?? "#059669").trim();
   const sortOrderRaw = String(formData.get("sort_order") ?? "0").trim();
   const isActive = formData.get("is_active") === "on";
 

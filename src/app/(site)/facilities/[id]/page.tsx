@@ -42,7 +42,7 @@ export default async function FacilityDetailPage({
 
   return (
     <div>
-      <Link href="/facilities" className="text-sm font-medium text-blue-600 hover:underline">
+      <Link href="/facilities" className="text-sm font-medium text-emerald-600 hover:underline">
         ← 시설 목록
       </Link>
 

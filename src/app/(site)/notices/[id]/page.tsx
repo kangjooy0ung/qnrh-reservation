@@ -15,7 +15,7 @@ export default async function NoticeDetailPage({
 
   return (
     <div>
-      <Link href="/notices" className="text-sm font-medium text-blue-600 hover:underline">
+      <Link href="/notices" className="text-sm font-medium text-emerald-600 hover:underline">
         ← 공지사항 목록
       </Link>
 

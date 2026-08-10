@@ -173,7 +173,7 @@ export function WeeklyTimetable({
                 <th
                   key={day.iso}
                   className={`px-3 py-3 text-center text-xs font-semibold ${
-                    day.isToday ? "text-blue-600" : "text-slate-500"
+                    day.isToday ? "text-emerald-600" : "text-slate-500"
                   }`}
                 >
                   <div>{day.label}</div>
@@ -213,13 +213,13 @@ export function WeeklyTimetable({
                             handleCellPointerDown(day, slot, slotIndex, reservation, disabled)
                           }
                           style={{ touchAction: "none" }}
-                          className="w-full rounded-lg border border-blue-100 bg-blue-50 px-2 py-2 text-left transition hover:bg-blue-100"
+                          className="w-full rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-2 text-left transition hover:bg-emerald-100"
                         >
-                          <p className="truncate text-xs font-semibold text-blue-700">
+                          <p className="truncate text-xs font-semibold text-emerald-700">
                             {reservation.teacher_name}
                           </p>
                           {reservation.purpose && (
-                            <p className="truncate text-[11px] text-blue-500">
+                            <p className="truncate text-[11px] text-emerald-500">
                               {reservation.purpose}
                             </p>
                           )}
@@ -245,8 +245,8 @@ export function WeeklyTimetable({
                           disabled
                             ? "cursor-not-allowed border-slate-100 text-slate-300"
                             : inDrag
-                              ? "border-blue-400 bg-blue-100 text-blue-600"
-                              : "border-slate-200 text-slate-400 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-500"
+                              ? "border-emerald-400 bg-emerald-100 text-emerald-600"
+                              : "border-slate-200 text-slate-400 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-500"
                         }`}
                       >
                         {disabled ? "마감" : inDrag ? "선택됨" : "예약 가능"}
@@ -266,7 +266,7 @@ export function WeeklyTimetable({
           (클릭 또는 드래그로 여러 교시 선택)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded bg-blue-100 border border-blue-200" /> 예약 완료
+          <span className="h-3 w-3 rounded bg-emerald-100 border border-emerald-200" /> 예약 완료
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded bg-slate-100" /> 마감(지난 날짜)

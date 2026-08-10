@@ -24,7 +24,7 @@ export default async function AdminSettingsPage() {
           <h2 className="text-lg font-bold text-slate-900">교시 관리</h2>
           <Link
             href="/admin/settings/time-slots/new"
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
           >
             + 교시 추가
           </Link>

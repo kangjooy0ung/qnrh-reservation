@@ -50,7 +50,7 @@ export default async function FacilityCalendarPage({
     <div>
       <Link
         href={`/facilities/${id}`}
-        className="text-sm font-medium text-blue-600 hover:underline"
+        className="text-sm font-medium text-emerald-600 hover:underline"
       >
         ← {facility.name} 주간 시간표
       </Link>
@@ -110,13 +110,13 @@ export default async function FacilityCalendarPage({
                 <Link
                   key={day.iso}
                   href={`/facilities/${id}?week=${day.iso}`}
-                  className={`flex min-h-[76px] flex-col gap-1 bg-white p-2 text-left transition hover:bg-blue-50 ${
+                  className={`flex min-h-[76px] flex-col gap-1 bg-white p-2 text-left transition hover:bg-emerald-50 ${
                     day.isCurrentMonth ? "" : "opacity-40"
                   }`}
                 >
                   <span
                     className={`text-xs font-semibold ${
-                      day.isToday ? "flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white" : "text-slate-500"
+                      day.isToday ? "flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-white" : "text-slate-500"
                     }`}
                   >
                     {day.date.getDate()}
@@ -124,7 +124,7 @@ export default async function FacilityCalendarPage({
                   {count > 0 && (
                     <span
                       className={`inline-block w-fit rounded px-1.5 py-0.5 text-[11px] font-medium ${
-                        isFull ? "bg-blue-100 text-blue-700" : "bg-blue-50 text-blue-600"
+                        isFull ? "bg-emerald-100 text-emerald-700" : "bg-emerald-50 text-emerald-600"
                       }`}
                     >
                       {isFull ? "마감" : `예약 ${count}건`}
@@ -139,10 +139,10 @@ export default async function FacilityCalendarPage({
 
       <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-400">
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded bg-blue-50 border border-blue-100" /> 일부 예약됨
+          <span className="h-3 w-3 rounded bg-emerald-50 border border-emerald-100" /> 일부 예약됨
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded bg-blue-100 border border-blue-200" /> 전 교시 마감
+          <span className="h-3 w-3 rounded bg-emerald-100 border border-emerald-200" /> 전 교시 마감
         </span>
         <span>날짜를 클릭하면 해당 주간 시간표로 이동합니다.</span>
       </div>
