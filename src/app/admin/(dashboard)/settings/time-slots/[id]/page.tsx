@@ -17,7 +17,7 @@ export default async function EditTimeSlotPage({
 
   return (
     <div>
-      <Link href="/admin/settings" className="text-sm font-medium text-blue-600 hover:underline">
+      <Link href="/admin/settings" className="text-sm font-medium text-emerald-600 hover:underline">
         ← 운영 설정
       </Link>
       <h1 className="mt-3 text-2xl font-bold text-slate-900">교시 수정</h1>

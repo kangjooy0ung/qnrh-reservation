@@ -20,10 +20,12 @@ export default async function FacilityDetailPage({
   const { id } = await params;
   const { week } = await searchParams;
 
-  const facility = await getFacility(id);
+  const [facility, weekendEnabledSetting] = await Promise.all([
+    getFacility(id),
+    getSetting("weekend_enabled", "false"),
+  ]);
   if (!facility) notFound();
 
-  const weekendEnabledSetting = await getSetting("weekend_enabled", "false");
   const includeWeekend = weekendEnabledSetting === "true";
 
   const monday = parseWeekParam(week);
@@ -42,7 +44,7 @@ export default async function FacilityDetailPage({
 
   return (
     <div>
-      <Link href="/facilities" className="text-sm font-medium text-blue-600 hover:underline">
+      <Link href="/facilities" className="text-sm font-medium text-emerald-600 hover:underline">
         ← 시설 목록
       </Link>
 
@@ -98,6 +100,10 @@ export default async function FacilityDetailPage({
         </div>
       </div>
       <p className="mt-1 text-sm text-slate-400">{formatWeekRangeLabel(monday, weekDays)}</p>
+
+      <p className="mt-3 rounded-xl bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+        💡 시작 교시를 누른 채로 끝 교시까지 드래그하면 여러 교시를 한 번에 예약할 수 있어요.
+      </p>
 
       {timeSlots.length === 0 ? (
         <p className="mt-6 rounded-2xl border border-dashed border-slate-300 p-10 text-center text-slate-400">

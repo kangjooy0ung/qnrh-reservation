@@ -60,7 +60,7 @@ export async function upsertFacility(
   const capacityRaw = String(formData.get("capacity") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const icon = String(formData.get("icon") ?? "🏫").trim() || "🏫";
-  const color = String(formData.get("color") ?? "#2563eb").trim();
+  const color = String(formData.get("color") ?? "#059669").trim();
   const sortOrderRaw = String(formData.get("sort_order") ?? "0").trim();
   const isActive = formData.get("is_active") === "on";
 
@@ -104,6 +104,15 @@ export async function deleteFacility(formData: FormData): Promise<void> {
   revalidatePath("/facilities");
 }
 
+export async function deleteFacilities(ids: string[]): Promise<void> {
+  await requireAdmin();
+  if (ids.length === 0) return;
+  const supabase = getSupabaseServer();
+  await supabase.from("facilities").delete().in("id", ids);
+  revalidatePath("/admin/facilities");
+  revalidatePath("/facilities");
+}
+
 // ---------- 공지사항 관리 ----------
 
 export async function upsertNotice(
@@ -142,6 +151,15 @@ export async function deleteNotice(formData: FormData): Promise<void> {
   if (!id) return;
   const supabase = getSupabaseServer();
   await supabase.from("notices").delete().eq("id", id);
+  revalidatePath("/admin/notices");
+  revalidatePath("/notices");
+}
+
+export async function deleteNotices(ids: string[]): Promise<void> {
+  await requireAdmin();
+  if (ids.length === 0) return;
+  const supabase = getSupabaseServer();
+  await supabase.from("notices").delete().in("id", ids);
   revalidatePath("/admin/notices");
   revalidatePath("/notices");
 }
@@ -229,4 +247,24 @@ export async function adminCancelReservation(formData: FormData): Promise<void> 
     revalidatePath(`/facilities/${reservation.facility_id}`);
   }
   revalidatePath("/reservations");
+}
+
+export async function adminBulkCancelReservations(ids: string[]): Promise<void> {
+  await requireAdmin();
+  if (ids.length === 0) return;
+  const supabase = getSupabaseServer();
+  const { data: rows } = await supabase
+    .from("reservations")
+    .select("facility_id")
+    .in("id", ids);
+  await supabase
+    .from("reservations")
+    .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+    .in("id", ids);
+  revalidatePath("/admin/reservations");
+  revalidatePath("/reservations");
+  const facilityIds = new Set((rows ?? []).map((r) => r.facility_id).filter(Boolean));
+  for (const facilityId of facilityIds) {
+    revalidatePath(`/facilities/${facilityId}`);
+  }
 }
