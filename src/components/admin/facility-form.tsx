@@ -85,6 +85,15 @@ export function FacilityForm({ facility }: { facility?: Facility }) {
           />
           예약 페이지에 노출 (운영 중)
         </label>
+        <label className="mt-6 flex items-center gap-2 text-sm font-medium text-slate-600">
+          <input
+            type="checkbox"
+            name="requires_approval"
+            defaultChecked={facility?.requires_approval ?? false}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          담당 선생님 승인 필요 (예: 열린수업공간)
+        </label>
       </div>
 
       <Field label="설명">

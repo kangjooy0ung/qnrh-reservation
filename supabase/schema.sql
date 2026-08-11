@@ -17,8 +17,12 @@ create table if not exists facilities (
   color text not null default '#2563eb',
   sort_order int not null default 0,
   is_active boolean not null default true,
+  requires_approval boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- 기존에 생성된 테이블에도 반영 (이미 실행한 적이 있다면 이 줄만 추가로 실행해도 됩니다)
+alter table facilities add column if not exists requires_approval boolean not null default false;
 
 -- 교시/시간대 (1교시, 방과후 등 관리자가 편집 가능)
 create table if not exists time_slots (
@@ -40,15 +44,24 @@ create table if not exists reservations (
   department text,
   purpose text,
   contact text,
-  status text not null default 'confirmed' check (status in ('confirmed','cancelled')),
+  -- pending: 승인이 필요한 시설(facilities.requires_approval)에 신청한 뒤 담당 선생님의 승인을 기다리는 상태
+  status text not null default 'confirmed' check (status in ('confirmed','pending','cancelled')),
+  reject_reason text,
   created_at timestamptz not null default now(),
   cancelled_at timestamptz
 );
 
--- 같은 시설·같은 날짜·같은 교시는 확정 예약이 1건만 존재
+-- 기존에 생성된 테이블에도 반영 (이미 실행한 적이 있다면 이 블록만 추가로 실행해도 됩니다)
+alter table reservations add column if not exists reject_reason text;
+alter table reservations drop constraint if exists reservations_status_check;
+alter table reservations add constraint reservations_status_check
+  check (status in ('confirmed','pending','cancelled'));
+
+-- 같은 시설·같은 날짜·같은 교시는 확정 예약 또는 승인 대기 예약이 1건만 존재
+drop index if exists reservations_unique_slot;
 create unique index if not exists reservations_unique_slot
   on reservations (facility_id, reservation_date, time_slot_id)
-  where status = 'confirmed';
+  where status in ('confirmed','pending');
 
 create index if not exists reservations_date_idx on reservations (reservation_date);
 create index if not exists reservations_teacher_idx on reservations (teacher_name);

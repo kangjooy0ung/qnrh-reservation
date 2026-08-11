@@ -25,6 +25,7 @@ export type TimetableReservation = {
   teacher_name: string;
   department: string | null;
   purpose: string | null;
+  status: "confirmed" | "pending";
 };
 
 type Selection =
@@ -40,12 +41,14 @@ type DragState = {
 export function WeeklyTimetable({
   facilityId,
   facilityName,
+  requiresApproval,
   timeSlots,
   weekDays,
   reservations,
 }: {
   facilityId: string;
   facilityName: string;
+  requiresApproval: boolean;
   timeSlots: TimetableSlot[];
   weekDays: TimetableDay[];
   reservations: TimetableReservation[];
@@ -201,6 +204,7 @@ export function WeeklyTimetable({
                     slotIndex <= Math.max(drag.anchorIndex, drag.currentIndex);
 
                   if (reservation) {
+                    const isPending = reservation.status === "pending";
                     return (
                       <td key={day.iso} className="px-1.5 py-1.5 align-top">
                         <button
@@ -213,13 +217,26 @@ export function WeeklyTimetable({
                             handleCellPointerDown(day, slot, slotIndex, reservation, disabled)
                           }
                           style={{ touchAction: "none" }}
-                          className="w-full rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-2 text-left transition hover:bg-emerald-100"
+                          className={`w-full rounded-lg border px-2 py-2 text-left transition ${
+                            isPending
+                              ? "border-amber-200 bg-amber-50 hover:bg-amber-100"
+                              : "border-emerald-100 bg-emerald-50 hover:bg-emerald-100"
+                          }`}
                         >
-                          <p className="truncate text-xs font-semibold text-emerald-700">
+                          <p
+                            className={`truncate text-xs font-semibold ${
+                              isPending ? "text-amber-700" : "text-emerald-700"
+                            }`}
+                          >
                             {reservation.teacher_name}
+                            {isPending && " (승인대기)"}
                           </p>
                           {reservation.purpose && (
-                            <p className="truncate text-[11px] text-emerald-500">
+                            <p
+                              className={`truncate text-[11px] ${
+                                isPending ? "text-amber-500" : "text-emerald-500"
+                              }`}
+                            >
                               {reservation.purpose}
                             </p>
                           )}
@@ -268,6 +285,11 @@ export function WeeklyTimetable({
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded bg-emerald-100 border border-emerald-200" /> 예약 완료
         </span>
+        {requiresApproval && (
+          <span className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded bg-amber-50 border border-amber-200" /> 승인 대기중
+          </span>
+        )}
         <span className="flex items-center gap-1.5">
           <span className="h-3 w-3 rounded bg-slate-100" /> 마감(지난 날짜)
         </span>
@@ -277,6 +299,7 @@ export function WeeklyTimetable({
         <ReservationModal
           facilityId={facilityId}
           facilityName={facilityName}
+          requiresApproval={requiresApproval}
           day={selected.day}
           slots={selected.slots}
           reservation={null}
@@ -287,6 +310,7 @@ export function WeeklyTimetable({
         <ReservationModal
           facilityId={facilityId}
           facilityName={facilityName}
+          requiresApproval={requiresApproval}
           day={selected.day}
           slots={[selected.slot]}
           reservation={selected.reservation}

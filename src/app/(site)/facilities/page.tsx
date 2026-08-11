@@ -74,6 +74,11 @@ export default async function FacilitiesPage({
                     >
                       {facility.category}
                     </span>
+                    {facility.requires_approval && (
+                      <span className="ml-1 mt-0.5 inline-block rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                        승인 필요
+                      </span>
+                    )}
                   </div>
                 </div>
                 {facility.description && (

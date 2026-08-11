@@ -13,7 +13,9 @@ export function ReservationsTable({
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const cancellableIds = reservations.filter((r) => r.status === "confirmed").map((r) => r.id);
+  const cancellableIds = reservations
+    .filter((r) => r.status === "confirmed" || r.status === "pending")
+    .map((r) => r.id);
   const allSelected = cancellableIds.length > 0 && cancellableIds.every((id) => selected.has(id));
 
   function toggle(id: string) {
@@ -78,7 +80,7 @@ export function ReservationsTable({
               reservations.map((r) => (
                 <tr key={r.id} className="border-b border-slate-50 last:border-0">
                   <td className="px-4 py-3">
-                    {r.status === "confirmed" && (
+                    {(r.status === "confirmed" || r.status === "pending") && (
                       <input
                         type="checkbox"
                         checked={selected.has(r.id)}
@@ -102,14 +104,16 @@ export function ReservationsTable({
                       className={`rounded px-1.5 py-0.5 text-xs font-medium ${
                         r.status === "confirmed"
                           ? "bg-emerald-50 text-emerald-600"
-                          : "bg-slate-100 text-slate-400"
+                          : r.status === "pending"
+                            ? "bg-amber-50 text-amber-600"
+                            : "bg-slate-100 text-slate-400"
                       }`}
                     >
-                      {r.status === "confirmed" ? "예약중" : "취소됨"}
+                      {r.status === "confirmed" ? "예약중" : r.status === "pending" ? "승인대기" : "취소됨"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {r.status === "confirmed" && (
+                    {(r.status === "confirmed" || r.status === "pending") && (
                       <form action={adminCancelReservation}>
                         <input type="hidden" name="id" value={r.id} />
                         <ConfirmSubmitButton

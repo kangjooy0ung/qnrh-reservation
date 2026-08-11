@@ -14,3 +14,4 @@ export const FACILITY_CATEGORIES = [
 ] as const;
 
 export const ADMIN_COOKIE_NAME = "admin_session";
+export const TEACHER_COOKIE_NAME = "teacher_session";

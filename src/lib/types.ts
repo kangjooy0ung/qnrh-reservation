@@ -9,6 +9,7 @@ export type Facility = {
   color: string;
   sort_order: number;
   is_active: boolean;
+  requires_approval: boolean;
   created_at: string;
 };
 
@@ -21,7 +22,7 @@ export type TimeSlot = {
   is_active: boolean;
 };
 
-export type ReservationStatus = "confirmed" | "cancelled";
+export type ReservationStatus = "pending" | "confirmed" | "cancelled";
 
 export type Reservation = {
   id: string;
@@ -33,6 +34,7 @@ export type Reservation = {
   purpose: string | null;
   contact: string | null;
   status: ReservationStatus;
+  reject_reason: string | null;
   created_at: string;
   cancelled_at: string | null;
 };
