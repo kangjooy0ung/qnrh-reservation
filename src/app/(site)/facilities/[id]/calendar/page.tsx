@@ -126,7 +126,7 @@ export default async function FacilityCalendarPage({
                         isFull ? "bg-emerald-100 text-emerald-700" : "bg-emerald-50 text-emerald-600"
                       }`}
                     >
-                      {isFull ? "마감" : "예약"}
+                      {isFull ? "마감" : `예약 ${count}건`}
                     </span>
                   )}
                 </Link>
