@@ -35,12 +35,21 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <Link
-          href="/admin/login"
-          className="shrink-0 text-xs font-medium text-slate-400 hover:text-slate-600"
-        >
-          관리자 로그인
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/teacher/login"
+            className="text-[11px] font-medium text-slate-400 hover:text-slate-600"
+          >
+            선생님 로그인
+          </Link>
+          <span className="text-slate-200">|</span>
+          <Link
+            href="/admin/login"
+            className="text-[11px] font-medium text-slate-400 hover:text-slate-600"
+          >
+            관리자 로그인
+          </Link>
+        </div>
       </div>
     </header>
   );
