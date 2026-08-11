@@ -15,9 +15,20 @@ export async function getReservationsForFacilityInRange(
     .from("reservations")
     .select(RELATION_SELECT)
     .eq("facility_id", facilityId)
-    .eq("status", "confirmed")
+    .in("status", ["confirmed", "pending"])
     .gte("reservation_date", startDate)
     .lte("reservation_date", endDate);
+  if (error) throw new Error(`예약 정보를 불러오지 못했습니다: ${error.message}`);
+  return data as unknown as ReservationWithRelations[];
+}
+
+export async function getPendingReservations(): Promise<ReservationWithRelations[]> {
+  const supabase = getSupabaseServer();
+  const { data, error } = await supabase
+    .from("reservations")
+    .select(RELATION_SELECT)
+    .eq("status", "pending")
+    .order("reservation_date", { ascending: true });
   if (error) throw new Error(`예약 정보를 불러오지 못했습니다: ${error.message}`);
   return data as unknown as ReservationWithRelations[];
 }
@@ -37,7 +48,7 @@ export async function getReservationsByTeacherName(
 
 export type ReservationFilter = {
   facilityId?: string;
-  status?: "confirmed" | "cancelled" | "all";
+  status?: "confirmed" | "pending" | "cancelled" | "all";
   from?: string;
   to?: string;
 };

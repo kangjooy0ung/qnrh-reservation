@@ -70,6 +70,12 @@ export default async function FacilityDetailPage({
         </p>
       )}
 
+      {facility.requires_approval && (
+        <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700 border border-amber-100">
+          🧑‍🏫 이 시설은 담당 선생님의 승인을 받아야 예약이 확정됩니다.
+        </p>
+      )}
+
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-900">주간 예약 시간표</h2>
         <div className="flex items-center gap-2">
@@ -114,6 +120,7 @@ export default async function FacilityDetailPage({
           <WeeklyTimetable
             facilityId={facility.id}
             facilityName={facility.name}
+            requiresApproval={facility.requires_approval}
             timeSlots={timeSlots.map((t) => ({
               id: t.id,
               label: t.label,
@@ -134,6 +141,7 @@ export default async function FacilityDetailPage({
               teacher_name: r.teacher_name,
               department: r.department,
               purpose: r.purpose,
+              status: r.status as "confirmed" | "pending",
             }))}
           />
         </div>

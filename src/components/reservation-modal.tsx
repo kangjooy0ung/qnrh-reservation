@@ -8,6 +8,7 @@ import type { TimetableDay, TimetableReservation, TimetableSlot } from "@/compon
 export function ReservationModal({
   facilityId,
   facilityName,
+  requiresApproval,
   day,
   slots,
   reservation,
@@ -15,6 +16,7 @@ export function ReservationModal({
 }: {
   facilityId: string;
   facilityName: string;
+  requiresApproval: boolean;
   day: TimetableDay;
   slots: TimetableSlot[];
   reservation: TimetableReservation | null;
@@ -58,7 +60,13 @@ export function ReservationModal({
         {reservation ? (
           <CancelForm reservation={reservation} onClose={onClose} />
         ) : (
-          <CreateForm facilityId={facilityId} day={day} slots={slots} onClose={onClose} />
+          <CreateForm
+            facilityId={facilityId}
+            requiresApproval={requiresApproval}
+            day={day}
+            slots={slots}
+            onClose={onClose}
+          />
         )}
       </div>
     </div>
@@ -67,11 +75,13 @@ export function ReservationModal({
 
 function CreateForm({
   facilityId,
+  requiresApproval,
   day,
   slots,
   onClose,
 }: {
   facilityId: string;
+  requiresApproval: boolean;
   day: TimetableDay;
   slots: TimetableSlot[];
   onClose: () => void;
@@ -126,6 +136,12 @@ function CreateForm({
         <input name="contact" maxLength={20} placeholder="예: 내선 1234" className="input" />
       </Field>
 
+      {requiresApproval && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          이 시설은 담당 선생님의 승인을 받아야 예약이 확정됩니다.
+        </p>
+      )}
+
       {state.status === "error" && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.message}</p>
       )}
@@ -137,9 +153,13 @@ function CreateForm({
       >
         {isPending
           ? "예약 처리 중..."
-          : slots.length > 1
-            ? `${slots.length}개 교시 예약 확정하기`
-            : "예약 확정하기"}
+          : requiresApproval
+            ? slots.length > 1
+              ? `${slots.length}개 교시 예약 신청하기`
+              : "예약 신청하기"
+            : slots.length > 1
+              ? `${slots.length}개 교시 예약 확정하기`
+              : "예약 확정하기"}
       </button>
     </form>
   );
@@ -173,6 +193,12 @@ function CancelForm({
   return (
     <div className="flex flex-col gap-3">
       <dl className="space-y-1.5 rounded-xl bg-slate-50 p-4 text-sm">
+        {reservation.status === "pending" && (
+          <div className="flex justify-between">
+            <dt className="text-slate-400">상태</dt>
+            <dd className="font-medium text-amber-600">승인대기중</dd>
+          </div>
+        )}
         <div className="flex justify-between">
           <dt className="text-slate-400">예약자</dt>
           <dd className="font-medium text-slate-800">{reservation.teacher_name}</dd>

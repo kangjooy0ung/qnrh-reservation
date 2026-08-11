@@ -53,14 +53,17 @@ export default async function MyReservationsPage({
         {query && reservations.length > 0 && (
           <ul className="flex flex-col gap-3">
             {reservations.map((r) => {
-              const canCancel = r.status === "confirmed" && r.reservation_date >= todayIso;
+              const canCancel =
+                (r.status === "confirmed" || r.status === "pending") && r.reservation_date >= todayIso;
               return (
                 <li
                   key={r.id}
                   className={`flex items-center justify-between gap-4 rounded-2xl border p-4 ${
                     r.status === "cancelled"
                       ? "border-slate-100 bg-slate-50 opacity-60"
-                      : "border-slate-200 bg-white"
+                      : r.status === "pending"
+                        ? "border-amber-200 bg-amber-50/40"
+                        : "border-slate-200 bg-white"
                   }`}
                 >
                   <div className="min-w-0">
@@ -69,7 +72,12 @@ export default async function MyReservationsPage({
                       <p className="font-semibold text-slate-900">{r.facility?.name ?? "삭제된 시설"}</p>
                       {r.status === "cancelled" && (
                         <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[11px] font-medium text-slate-500">
-                          취소됨
+                          {r.reject_reason ? "반려됨" : "취소됨"}
+                        </span>
+                      )}
+                      {r.status === "pending" && (
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                          승인대기
                         </span>
                       )}
                     </div>
@@ -78,6 +86,9 @@ export default async function MyReservationsPage({
                       {r.time_slot?.start_time.slice(0, 5)}~{r.time_slot?.end_time.slice(0, 5)})
                     </p>
                     {r.purpose && <p className="mt-0.5 text-xs text-slate-400">{r.purpose}</p>}
+                    {r.status === "cancelled" && r.reject_reason && (
+                      <p className="mt-0.5 text-xs text-red-500">반려 사유: {r.reject_reason}</p>
+                    )}
                   </div>
                   {canCancel && <CancelReservationInline id={r.id} teacherName={r.teacher_name} />}
                 </li>

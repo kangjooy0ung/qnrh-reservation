@@ -14,7 +14,7 @@ export default async function AdminReservationsPage({
 
   const reservations = await getAllReservations({
     facilityId: facility || undefined,
-    status: (status as "confirmed" | "cancelled" | "all") || "confirmed",
+    status: (status as "confirmed" | "pending" | "cancelled" | "all") || "confirmed",
     from: from || undefined,
     to: to || undefined,
   });
@@ -38,6 +38,7 @@ export default async function AdminReservationsPage({
         <Field label="상태">
           <select name="status" defaultValue={status ?? "confirmed"} className="input">
             <option value="confirmed">예약중</option>
+            <option value="pending">승인대기</option>
             <option value="cancelled">취소됨</option>
             <option value="all">전체</option>
           </select>

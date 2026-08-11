@@ -35,6 +35,18 @@ export async function createReservation(
   }
 
   const supabase = getSupabaseServer();
+
+  const { data: facility, error: facilityError } = await supabase
+    .from("facilities")
+    .select("requires_approval")
+    .eq("id", facilityId)
+    .maybeSingle();
+  if (facilityError || !facility) {
+    return { status: "error", message: "시설 정보를 찾을 수 없습니다." };
+  }
+  const requiresApproval = facility.requires_approval;
+  const initialStatus = requiresApproval ? "pending" : "confirmed";
+
   let successCount = 0;
   let duplicateCount = 0;
   let otherErrorMessage: string | null = null;
@@ -48,6 +60,7 @@ export async function createReservation(
       department: department || null,
       purpose: purpose || null,
       contact: contact || null,
+      status: initialStatus,
     });
 
     if (!error) {
@@ -63,22 +76,27 @@ export async function createReservation(
   revalidatePath("/reservations");
 
   if (successCount === timeSlotIds.length) {
+    const base =
+      timeSlotIds.length > 1 ? `${successCount}개 교시 예약` : "예약";
     return {
       status: "success",
-      message:
-        timeSlotIds.length > 1 ? `${successCount}개 교시 예약이 완료되었습니다.` : "예약이 완료되었습니다.",
+      message: requiresApproval
+        ? `${base} 신청이 접수되었습니다. 담당 선생님 승인 후 확정됩니다.`
+        : `${base}이 완료되었습니다.`,
     };
   }
   if (successCount > 0) {
     return {
       status: "success",
-      message: `${successCount}개 교시 예약 완료, ${duplicateCount}개 교시는 다른 선생님이 먼저 예약해 제외되었습니다.`,
+      message: requiresApproval
+        ? `${successCount}개 교시 예약 신청이 접수되었습니다(담당 선생님 승인 필요). ${duplicateCount}개 교시는 이미 신청/예약되어 제외되었습니다.`
+        : `${successCount}개 교시 예약 완료, ${duplicateCount}개 교시는 다른 선생님이 먼저 예약해 제외되었습니다.`,
     };
   }
   if (duplicateCount > 0) {
     return {
       status: "error",
-      message: "선택한 교시가 이미 예약되어 있습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.",
+      message: "선택한 교시가 이미 예약(또는 승인 대기)되어 있습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.",
     };
   }
   return { status: "error", message: `예약에 실패했습니다: ${otherErrorMessage ?? "알 수 없는 오류"}` };

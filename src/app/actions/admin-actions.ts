@@ -63,6 +63,7 @@ export async function upsertFacility(
   const color = String(formData.get("color") ?? "#059669").trim();
   const sortOrderRaw = String(formData.get("sort_order") ?? "0").trim();
   const isActive = formData.get("is_active") === "on";
+  const requiresApproval = formData.get("requires_approval") === "on";
 
   if (!name) {
     return { status: "error", message: "시설명을 입력해 주세요." };
@@ -78,6 +79,7 @@ export async function upsertFacility(
     color,
     sort_order: sortOrderRaw ? Number(sortOrderRaw) : 0,
     is_active: isActive,
+    requires_approval: requiresApproval,
   };
 
   const supabase = getSupabaseServer();
