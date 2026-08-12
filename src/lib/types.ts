@@ -20,9 +20,10 @@ export type TimeSlot = {
   end_time: string;
   sort_order: number;
   is_active: boolean;
+  facility_id: string | null;
 };
 
-export type ReservationStatus = "pending" | "confirmed" | "cancelled";
+export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "blocked";
 
 export type Reservation = {
   id: string;
@@ -33,10 +34,17 @@ export type Reservation = {
   department: string | null;
   purpose: string | null;
   contact: string | null;
+  request_note: string | null;
   status: ReservationStatus;
   reject_reason: string | null;
   created_at: string;
   cancelled_at: string | null;
+};
+
+export type FacilityAdmin = {
+  facility_id: string;
+  password_hash: string;
+  updated_at: string;
 };
 
 export type ReservationWithRelations = Reservation & {

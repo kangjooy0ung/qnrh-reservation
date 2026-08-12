@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { checkAdminPassword, computeAdminToken, isValidAdminToken } from "@/lib/admin-auth";
 import { ADMIN_COOKIE_NAME } from "@/lib/constants";
+import { DEFAULT_FACILITY_PASSWORD, hashPassword } from "@/lib/facility-admin-auth";
 import type { ActionState } from "@/lib/action-state";
 
 const SESSION_MAX_AGE = 60 * 60 * 12; // 12시간
@@ -113,6 +114,43 @@ export async function deleteFacilities(ids: string[]): Promise<void> {
   await supabase.from("facilities").delete().in("id", ids);
   revalidatePath("/admin/facilities");
   revalidatePath("/facilities");
+}
+
+// ---------- 시설별 담당 선생님 로그인 관리 ----------
+
+export async function setFacilityAdminPassword(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const facilityId = String(formData.get("facility_id") ?? "").trim();
+  const newPassword = String(formData.get("new_password") ?? "").trim() || DEFAULT_FACILITY_PASSWORD;
+
+  if (!facilityId) {
+    return { status: "error", message: "시설 정보가 올바르지 않습니다." };
+  }
+
+  const supabase = getSupabaseServer();
+  const { error } = await supabase
+    .from("facility_admins")
+    .upsert({ facility_id: facilityId, password_hash: await hashPassword(newPassword), updated_at: new Date().toISOString() });
+
+  if (error) {
+    return { status: "error", message: `저장에 실패했습니다: ${error.message}` };
+  }
+
+  revalidatePath(`/admin/facilities/${facilityId}`);
+  return { status: "success", message: `담당 선생님 로그인 비밀번호가 설정되었습니다. (${newPassword})` };
+}
+
+export async function removeFacilityAdminPassword(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const facilityId = String(formData.get("facility_id") ?? "");
+  if (!facilityId) return;
+  const supabase = getSupabaseServer();
+  await supabase.from("facility_admins").delete().eq("facility_id", facilityId);
+  revalidatePath(`/admin/facilities/${facilityId}`);
 }
 
 // ---------- 공지사항 관리 ----------

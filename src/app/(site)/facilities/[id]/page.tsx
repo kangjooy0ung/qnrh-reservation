@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { addDays, format } from "date-fns";
 import { getFacility } from "@/lib/data/facilities";
-import { getTimeSlots } from "@/lib/data/time-slots";
+import { getTimeSlotsForFacility } from "@/lib/data/time-slots";
 import { getReservationsForFacilityInRange } from "@/lib/data/reservations";
 import { getSetting } from "@/lib/data/settings";
 import { buildWeekDays, parseWeekParam, toISODate, formatWeekRangeLabel } from "@/lib/dates";
@@ -34,7 +34,7 @@ export default async function FacilityDetailPage({
   const rangeEnd = toISODate(weekDays[weekDays.length - 1].date);
 
   const [timeSlots, reservations] = await Promise.all([
-    getTimeSlots(),
+    getTimeSlotsForFacility(facility),
     getReservationsForFacilityInRange(id, rangeStart, rangeEnd),
   ]);
 
@@ -72,7 +72,8 @@ export default async function FacilityDetailPage({
 
       {facility.requires_approval && (
         <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700 border border-amber-100">
-          🧑‍🏫 이 시설은 담당 선생님의 승인을 받아야 예약이 확정됩니다.
+          🧑‍🏫 이 시설은 담당 선생님의 승인을 받아야 예약이 확정됩니다. 여러 명이 같은 시간에
+          신청할 수 있으며 담당 선생님이 확인하는 데 시간이 걸릴 수 있습니다.
         </p>
       )}
 
@@ -141,7 +142,7 @@ export default async function FacilityDetailPage({
               teacher_name: r.teacher_name,
               department: r.department,
               purpose: r.purpose,
-              status: r.status as "confirmed" | "pending",
+              status: r.status as "confirmed" | "pending" | "blocked",
             }))}
           />
         </div>

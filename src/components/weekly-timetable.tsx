@@ -25,11 +25,11 @@ export type TimetableReservation = {
   teacher_name: string;
   department: string | null;
   purpose: string | null;
-  status: "confirmed" | "pending";
+  status: "confirmed" | "pending" | "blocked";
 };
 
 type Selection =
-  | { type: "create"; day: TimetableDay; slots: TimetableSlot[] }
+  | { type: "create"; day: TimetableDay; slots: TimetableSlot[]; pendingCount: number }
   | { type: "cancel"; day: TimetableDay; slot: TimetableSlot; reservation: TimetableReservation };
 
 type DragState = {
@@ -56,29 +56,48 @@ export function WeeklyTimetable({
   const [selected, setSelected] = useState<Selection | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
 
-  const reservationMap = useMemo(() => {
+  // 슬롯을 점유하는 예약(confirmed/blocked, 최대 1건)과 승인 대기 중인 신청(pending, 여러 건 가능)을 구분합니다.
+  const occupyingMap = useMemo(() => {
     const map = new Map<string, TimetableReservation>();
     for (const r of reservations) {
-      map.set(`${r.reservation_date}__${r.time_slot_id}`, r);
+      if (r.status === "confirmed" || r.status === "blocked") {
+        map.set(`${r.reservation_date}__${r.time_slot_id}`, r);
+      }
     }
     return map;
   }, [reservations]);
 
-  // 요일별로 각 교시(index)가 새 예약 선택에 포함될 수 있는지(예약 없음 + 마감 아님) 미리 계산
+  const pendingMap = useMemo(() => {
+    const map = new Map<string, TimetableReservation[]>();
+    for (const r of reservations) {
+      if (r.status === "pending") {
+        const key = `${r.reservation_date}__${r.time_slot_id}`;
+        const list = map.get(key) ?? [];
+        list.push(r);
+        map.set(key, list);
+      }
+    }
+    return map;
+  }, [reservations]);
+
+  // 요일별로 각 교시(index)가 새 예약 선택에 포함될 수 있는지(점유 없음 + 마감 아님) 미리 계산
+  // 승인 대기 신청만 있는 슬롯은 여전히 선택 가능합니다(여러 명이 신청할 수 있음).
   const availabilityByDay = useMemo(() => {
     const map = new Map<string, boolean[]>();
     for (const day of weekDays) {
       map.set(
         day.iso,
         timeSlots.map((slot) => {
-          const reservation = reservationMap.get(`${day.iso}__${slot.id}`);
-          const disabled = day.isPast && !reservation;
-          return !reservation && !disabled;
+          const key = `${day.iso}__${slot.id}`;
+          const occupying = occupyingMap.get(key);
+          const pending = pendingMap.get(key) ?? [];
+          const disabled = day.isPast && !occupying && pending.length === 0;
+          return !occupying && !disabled;
         })
       );
     }
     return map;
-  }, [weekDays, timeSlots, reservationMap]);
+  }, [weekDays, timeSlots, occupyingMap, pendingMap]);
 
   useEffect(() => {
     if (!drag) return;
@@ -127,7 +146,11 @@ export function WeeklyTimetable({
           const to = Math.max(current.anchorIndex, current.currentIndex);
           const slots = timeSlots.slice(from, to + 1);
           if (slots.length > 0) {
-            setSelected({ type: "create", day, slots });
+            const pendingCount = slots.reduce(
+              (sum, slot) => sum + (pendingMap.get(`${day.iso}__${slot.id}`)?.length ?? 0),
+              0
+            );
+            setSelected({ type: "create", day, slots, pendingCount });
           }
         }
       }
@@ -142,17 +165,17 @@ export function WeeklyTimetable({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, [drag, availabilityByDay, weekDays, timeSlots]);
+  }, [drag, availabilityByDay, weekDays, timeSlots, pendingMap]);
 
   function handleCellPointerDown(
     day: TimetableDay,
     slot: TimetableSlot,
     slotIndex: number,
-    reservation: TimetableReservation | null,
+    occupying: TimetableReservation | null,
     disabled: boolean
   ) {
-    if (reservation) {
-      setSelected({ type: "cancel", day, slot, reservation });
+    if (occupying) {
+      setSelected({ type: "cancel", day, slot, reservation: occupying });
       return;
     }
     if (disabled) return;
@@ -195,16 +218,18 @@ export function WeeklyTimetable({
                   </div>
                 </td>
                 {weekDays.map((day) => {
-                  const reservation = reservationMap.get(`${day.iso}__${slot.id}`) ?? null;
-                  const disabled = day.isPast && !reservation;
+                  const key = `${day.iso}__${slot.id}`;
+                  const occupying = occupyingMap.get(key) ?? null;
+                  const pending = pendingMap.get(key) ?? [];
+                  const disabled = day.isPast && !occupying && pending.length === 0;
                   const inDrag =
                     drag &&
                     drag.dayIso === day.iso &&
                     slotIndex >= Math.min(drag.anchorIndex, drag.currentIndex) &&
                     slotIndex <= Math.max(drag.anchorIndex, drag.currentIndex);
 
-                  if (reservation) {
-                    const isPending = reservation.status === "pending";
+                  if (occupying) {
+                    const isBlocked = occupying.status === "blocked";
                     return (
                       <td key={day.iso} className="px-1.5 py-1.5 align-top">
                         <button
@@ -214,32 +239,61 @@ export function WeeklyTimetable({
                           data-slot-index={slotIndex}
                           data-available="false"
                           onPointerDown={() =>
-                            handleCellPointerDown(day, slot, slotIndex, reservation, disabled)
+                            handleCellPointerDown(day, slot, slotIndex, occupying, disabled)
                           }
                           style={{ touchAction: "none" }}
                           className={`w-full rounded-lg border px-2 py-2 text-left transition ${
-                            isPending
-                              ? "border-amber-200 bg-amber-50 hover:bg-amber-100"
+                            isBlocked
+                              ? "border-slate-200 bg-slate-100 hover:bg-slate-200"
                               : "border-emerald-100 bg-emerald-50 hover:bg-emerald-100"
                           }`}
                         >
                           <p
                             className={`truncate text-xs font-semibold ${
-                              isPending ? "text-amber-700" : "text-emerald-700"
+                              isBlocked ? "text-slate-600" : "text-emerald-700"
                             }`}
                           >
-                            {reservation.teacher_name}
-                            {isPending && " (승인대기)"}
+                            {isBlocked ? "🚫 사용 제한" : occupying.teacher_name}
                           </p>
-                          {reservation.purpose && (
+                          {occupying.purpose && (
                             <p
                               className={`truncate text-[11px] ${
-                                isPending ? "text-amber-500" : "text-emerald-500"
+                                isBlocked ? "text-slate-400" : "text-emerald-500"
                               }`}
                             >
-                              {reservation.purpose}
+                              {occupying.purpose}
                             </p>
                           )}
+                        </button>
+                      </td>
+                    );
+                  }
+
+                  if (requiresApproval && pending.length > 0) {
+                    return (
+                      <td key={day.iso} className="px-1.5 py-1.5 align-top">
+                        <button
+                          type="button"
+                          data-cell="1"
+                          data-day={day.iso}
+                          data-slot-index={slotIndex}
+                          data-available="true"
+                          onPointerDown={() =>
+                            handleCellPointerDown(day, slot, slotIndex, null, disabled)
+                          }
+                          style={{ touchAction: "none" }}
+                          className={`w-full rounded-lg border px-2 py-2 text-left transition ${
+                            inDrag
+                              ? "border-emerald-400 bg-emerald-100"
+                              : "border-amber-200 bg-amber-50 hover:bg-amber-100"
+                          }`}
+                        >
+                          <p className="truncate text-xs font-semibold text-amber-700">
+                            {pending.length}명 신청중
+                          </p>
+                          <p className="truncate text-[11px] text-amber-500">
+                            {inDrag ? "선택됨" : "추가 신청 가능"}
+                          </p>
                         </button>
                       </td>
                     );
@@ -288,10 +342,11 @@ export function WeeklyTimetable({
         {requiresApproval && (
           <span className="flex items-center gap-1.5">
             <span className="h-3 w-3 rounded bg-amber-50 border border-amber-200" /> 승인 대기중
+            (추가 신청 가능)
           </span>
         )}
         <span className="flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded bg-slate-100" /> 마감(지난 날짜)
+          <span className="h-3 w-3 rounded bg-slate-100 border border-slate-200" /> 사용 제한/마감
         </span>
       </div>
 
@@ -303,6 +358,7 @@ export function WeeklyTimetable({
           day={selected.day}
           slots={selected.slots}
           reservation={null}
+          pendingCount={selected.pendingCount}
           onClose={() => setSelected(null)}
         />
       )}
@@ -314,6 +370,7 @@ export function WeeklyTimetable({
           day={selected.day}
           slots={[selected.slot]}
           reservation={selected.reservation}
+          pendingCount={0}
           onClose={() => setSelected(null)}
         />
       )}

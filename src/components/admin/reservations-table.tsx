@@ -14,7 +14,7 @@ export function ReservationsTable({
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const cancellableIds = reservations
-    .filter((r) => r.status === "confirmed" || r.status === "pending")
+    .filter((r) => r.status === "confirmed" || r.status === "pending" || r.status === "blocked")
     .map((r) => r.id);
   const allSelected = cancellableIds.length > 0 && cancellableIds.every((id) => selected.has(id));
 
@@ -80,7 +80,7 @@ export function ReservationsTable({
               reservations.map((r) => (
                 <tr key={r.id} className="border-b border-slate-50 last:border-0">
                   <td className="px-4 py-3">
-                    {(r.status === "confirmed" || r.status === "pending") && (
+                    {(r.status === "confirmed" || r.status === "pending" || r.status === "blocked") && (
                       <input
                         type="checkbox"
                         checked={selected.has(r.id)}
@@ -106,14 +106,22 @@ export function ReservationsTable({
                           ? "bg-emerald-50 text-emerald-600"
                           : r.status === "pending"
                             ? "bg-amber-50 text-amber-600"
-                            : "bg-slate-100 text-slate-400"
+                            : r.status === "blocked"
+                              ? "bg-slate-200 text-slate-600"
+                              : "bg-slate-100 text-slate-400"
                       }`}
                     >
-                      {r.status === "confirmed" ? "예약중" : r.status === "pending" ? "승인대기" : "취소됨"}
+                      {r.status === "confirmed"
+                        ? "예약중"
+                        : r.status === "pending"
+                          ? "승인대기"
+                          : r.status === "blocked"
+                            ? "사용 제한"
+                            : "취소됨"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {(r.status === "confirmed" || r.status === "pending") && (
+                    {(r.status === "confirmed" || r.status === "pending" || r.status === "blocked") && (
                       <form action={adminCancelReservation}>
                         <input type="hidden" name="id" value={r.id} />
                         <ConfirmSubmitButton
