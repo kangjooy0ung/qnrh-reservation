@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFacility } from "@/lib/data/facilities";
-import { getTimeSlots } from "@/lib/data/time-slots";
+import { getTimeSlotsForFacility } from "@/lib/data/time-slots";
 import { getReservationsForFacilityInRange } from "@/lib/data/reservations";
 import {
   buildMonthGrid,
@@ -28,15 +28,22 @@ export default async function FacilityCalendarPage({
   const monthStart = parseMonthParam(month);
   const days = buildMonthGrid(monthStart);
 
-  const [facility, timeSlots, reservations] = await Promise.all([
-    getFacility(id),
-    getTimeSlots(),
-    getReservationsForFacilityInRange(id, days[0].iso, days[days.length - 1].iso),
-  ]);
+  const facility = await getFacility(id);
   if (!facility) notFound();
 
+  const [timeSlots, reservations] = await Promise.all([
+    getTimeSlotsForFacility(facility),
+    getReservationsForFacilityInRange(id, days[0].iso, days[days.length - 1].iso),
+  ]);
+
+  // 승인형 시설은 같은 슬롯에 pending 신청이 여러 건 있을 수 있으므로
+  // 행 개수가 아니라 점유된 (날짜,교시) 고유 슬롯 수로 집계합니다.
   const countByDate = new Map<string, number>();
+  const seenSlots = new Set<string>();
   for (const r of reservations) {
+    const key = `${r.reservation_date}__${r.time_slot_id}`;
+    if (seenSlots.has(key)) continue;
+    seenSlots.add(key);
     countByDate.set(r.reservation_date, (countByDate.get(r.reservation_date) ?? 0) + 1);
   }
 

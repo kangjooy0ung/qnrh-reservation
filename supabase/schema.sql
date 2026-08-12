@@ -116,3 +116,56 @@ alter table time_slots enable row level security;
 alter table reservations enable row level security;
 alter table notices enable row level security;
 alter table app_settings enable row level security;
+
+-- ============================================================
+-- 시설별 담당 선생님 로그인 + 승인형 시설(열린수업공간/도서관/녹사자마루/학운위실) 확장
+-- ============================================================
+
+-- 예약 상태에 'blocked'(담당 선생님이 특정 슬롯을 사용 제한으로 막음) 추가
+alter table reservations drop constraint if exists reservations_status_check;
+alter table reservations add constraint reservations_status_check
+  check (status in ('confirmed','pending','cancelled','blocked'));
+
+-- 승인형 시설 신청 시 담당 선생님에게 남기는 요청사항 메모
+alter table reservations add column if not exists request_note text;
+
+-- 같은 슬롯에 pending 신청은 여러 건 허용(선점 방식 폐지), confirmed/blocked는 여전히 1건만 허용
+drop index if exists reservations_unique_slot;
+create unique index if not exists reservations_unique_slot
+  on reservations (facility_id, reservation_date, time_slot_id)
+  where status in ('confirmed','blocked');
+
+-- 시설별 전용 교시(NULL = 총관리자가 관리하는 공용 교시표)
+alter table time_slots add column if not exists facility_id uuid references facilities(id) on delete cascade;
+create index if not exists time_slots_facility_idx on time_slots (facility_id);
+
+-- 시설마다 같은 라벨("1교시" 등)을 따로 가질 수 있도록 전역 unique(label)를 (facility_id,label)로 교체
+alter table time_slots drop constraint if exists time_slots_label_key;
+create unique index if not exists time_slots_facility_label_idx on time_slots (facility_id, label);
+
+-- 시설별 담당 선생님 로그인 (시설 1곳당 로그인 1개)
+create table if not exists facility_admins (
+  facility_id uuid primary key references facilities(id) on delete cascade,
+  password_hash text not null,
+  updated_at timestamptz not null default now()
+);
+alter table facility_admins enable row level security;
+
+-- 도서관 시설 추가 (열린수업공간과 같은 승인형 시설)
+insert into facilities (name, category, location, capacity, description, icon, color, sort_order, requires_approval)
+select '도서관', '특별실', '본관', null, null, '📚', '#0d9488', 10, true
+where not exists (select 1 from facilities where name = '도서관');
+
+-- 기존 시설을 승인형 시설로 전환
+update facilities set requires_approval = true where name in ('녹사자마루', '학운위실');
+
+-- 승인형 시설(4곳)에 공용 교시표를 복제해 전용 교시표의 시작점으로 사용
+insert into time_slots (label, start_time, end_time, sort_order, is_active, facility_id)
+select g.label, g.start_time, g.end_time, g.sort_order, g.is_active, f.id
+from time_slots g
+cross join facilities f
+where g.facility_id is null
+  and f.name in ('열린수업공간', '도서관', '녹사자마루', '학운위실')
+  and not exists (
+    select 1 from time_slots t2 where t2.facility_id = f.id and t2.label = g.label
+  );

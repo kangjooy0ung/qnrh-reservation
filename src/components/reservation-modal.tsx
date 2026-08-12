@@ -12,6 +12,7 @@ export function ReservationModal({
   day,
   slots,
   reservation,
+  pendingCount = 0,
   onClose,
 }: {
   facilityId: string;
@@ -20,6 +21,7 @@ export function ReservationModal({
   day: TimetableDay;
   slots: TimetableSlot[];
   reservation: TimetableReservation | null;
+  pendingCount?: number;
   onClose: () => void;
 }) {
   const first = slots[0];
@@ -65,6 +67,7 @@ export function ReservationModal({
             requiresApproval={requiresApproval}
             day={day}
             slots={slots}
+            pendingCount={pendingCount}
             onClose={onClose}
           />
         )}
@@ -78,12 +81,14 @@ function CreateForm({
   requiresApproval,
   day,
   slots,
+  pendingCount,
   onClose,
 }: {
   facilityId: string;
   requiresApproval: boolean;
   day: TimetableDay;
   slots: TimetableSlot[];
+  pendingCount: number;
   onClose: () => void;
 }) {
   const [state, formAction, isPending] = useActionState(createReservation, initialActionState);
@@ -137,9 +142,27 @@ function CreateForm({
       </Field>
 
       {requiresApproval && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-          이 시설은 담당 선생님의 승인을 받아야 예약이 확정됩니다.
-        </p>
+        <>
+          <Field label="요청사항 메모 (선택, 담당 선생님에게 보여요)">
+            <textarea
+              name="request_note"
+              rows={2}
+              maxLength={200}
+              placeholder="예: 매주 화요일 5교시 정기 사용을 희망합니다"
+              className="input"
+            />
+          </Field>
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            이 시설은 담당 선생님의 승인을 받아야 예약이 확정됩니다. 승인 여부 확인에 시간이 걸릴
+            수 있습니다.
+          </p>
+          {pendingCount > 0 && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              현재 이 시간대에 {pendingCount}건의 신청이 대기 중입니다. 담당 선생님이 그중 1건만
+              승인합니다.
+            </p>
+          )}
+        </>
       )}
 
       {state.status === "error" && (
@@ -199,10 +222,17 @@ function CancelForm({
             <dd className="font-medium text-amber-600">승인대기중</dd>
           </div>
         )}
-        <div className="flex justify-between">
-          <dt className="text-slate-400">예약자</dt>
-          <dd className="font-medium text-slate-800">{reservation.teacher_name}</dd>
-        </div>
+        {reservation.status === "blocked" ? (
+          <div className="flex justify-between">
+            <dt className="text-slate-400">상태</dt>
+            <dd className="font-medium text-slate-600">담당 선생님 사용 제한</dd>
+          </div>
+        ) : (
+          <div className="flex justify-between">
+            <dt className="text-slate-400">예약자</dt>
+            <dd className="font-medium text-slate-800">{reservation.teacher_name}</dd>
+          </div>
+        )}
         {reservation.department && (
           <div className="flex justify-between">
             <dt className="text-slate-400">학년/부서</dt>
@@ -211,30 +241,36 @@ function CancelForm({
         )}
         {reservation.purpose && (
           <div className="flex justify-between">
-            <dt className="text-slate-400">사용 목적</dt>
+            <dt className="text-slate-400">{reservation.status === "blocked" ? "사유" : "사용 목적"}</dt>
             <dd className="font-medium text-slate-800">{reservation.purpose}</dd>
           </div>
         )}
       </dl>
 
-      <form action={formAction} className="flex flex-col gap-3">
-        <input type="hidden" name="id" value={reservation.id} />
-        <Field label="예약을 취소하려면 예약자 성함을 다시 입력하세요">
-          <input name="teacher_name" required maxLength={20} className="input" />
-        </Field>
+      {reservation.status === "blocked" ? (
+        <p className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500">
+          담당 선생님이 사용 제한으로 등록한 시간입니다. 예약할 수 없습니다.
+        </p>
+      ) : (
+        <form action={formAction} className="flex flex-col gap-3">
+          <input type="hidden" name="id" value={reservation.id} />
+          <Field label="예약을 취소하려면 예약자 성함을 다시 입력하세요">
+            <input name="teacher_name" required maxLength={20} className="input" />
+          </Field>
 
-        {state.status === "error" && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.message}</p>
-        )}
+          {state.status === "error" && (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.message}</p>
+          )}
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="mt-1 rounded-xl bg-red-50 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
-        >
-          {isPending ? "취소 처리 중..." : "예약 취소하기"}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={isPending}
+            className="mt-1 rounded-xl bg-red-50 py-3 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+          >
+            {isPending ? "취소 처리 중..." : "예약 취소하기"}
+          </button>
+        </form>
+      )}
     </div>
   );
 }

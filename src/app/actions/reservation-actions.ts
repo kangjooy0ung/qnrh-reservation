@@ -15,6 +15,7 @@ export async function createReservation(
   const department = String(formData.get("department") ?? "").trim();
   const purpose = String(formData.get("purpose") ?? "").trim();
   const contact = String(formData.get("contact") ?? "").trim();
+  const requestNote = String(formData.get("request_note") ?? "").trim();
 
   if (!facilityId || timeSlotIds.length === 0 || !reservationDate) {
     return { status: "error", message: "예약 정보가 올바르지 않습니다. 다시 시도해 주세요." };
@@ -60,6 +61,7 @@ export async function createReservation(
       department: department || null,
       purpose: purpose || null,
       contact: contact || null,
+      request_note: requiresApproval ? requestNote || null : null,
       status: initialStatus,
     });
 
@@ -89,14 +91,14 @@ export async function createReservation(
     return {
       status: "success",
       message: requiresApproval
-        ? `${successCount}개 교시 예약 신청이 접수되었습니다(담당 선생님 승인 필요). ${duplicateCount}개 교시는 이미 신청/예약되어 제외되었습니다.`
+        ? `${successCount}개 교시 예약 신청이 접수되었습니다(담당 선생님 승인 필요). ${duplicateCount}개 교시는 이미 확정(또는 사용 제한)되어 제외되었습니다.`
         : `${successCount}개 교시 예약 완료, ${duplicateCount}개 교시는 다른 선생님이 먼저 예약해 제외되었습니다.`,
     };
   }
   if (duplicateCount > 0) {
     return {
       status: "error",
-      message: "선택한 교시가 이미 예약(또는 승인 대기)되어 있습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.",
+      message: "선택한 교시가 이미 확정(또는 사용 제한)되어 있습니다. 목록을 새로고침한 뒤 다시 시도해 주세요.",
     };
   }
   return { status: "error", message: `예약에 실패했습니다: ${otherErrorMessage ?? "알 수 없는 오류"}` };
