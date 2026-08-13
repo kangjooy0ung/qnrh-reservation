@@ -18,17 +18,12 @@ export default async function TeacherRejectionsPage({
   const rejections = await getRecentRejectionsForFacility(facilityId);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8">
+    <div>
       <TeacherPageHeader
-        facility={facility}
-        facilityId={facilityId}
         title="반려 내역"
-        description="반려 사유는 기본적으로 예약 페이지에 공개됩니다. 공개하고 싶지 않은 사유는 비공개로 전환하세요."
+        description="반려 사유는 기본적으로 예약 페이지에 공개됩니다. 공개하고 싶지 않은 사유는 비공개로 전환하거나 완전히 삭제할 수 있습니다."
       />
-
-      <div className="mt-6">
-        <RejectReasonList facilityId={facilityId} rejections={rejections} />
-      </div>
+      <RejectReasonList facilityId={facilityId} rejections={rejections} />
     </div>
   );
 }

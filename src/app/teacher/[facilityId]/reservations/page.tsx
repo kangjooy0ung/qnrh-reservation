@@ -18,17 +18,12 @@ export default async function TeacherReservationsPage({
   const confirmed = await getAllReservations({ facilityId, status: "confirmed" });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8">
+    <div>
       <TeacherPageHeader
-        facility={facility}
-        facilityId={facilityId}
         title="예약 현황"
         description="확정된 예약을 조회하고 필요하면 취소할 수 있습니다."
       />
-
-      <div className="mt-6">
-        <FacilityReservationList facilityId={facilityId} reservations={confirmed} />
-      </div>
+      <FacilityReservationList facilityId={facilityId} reservations={confirmed} />
     </div>
   );
 }

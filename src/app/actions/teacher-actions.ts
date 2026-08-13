@@ -373,3 +373,31 @@ export async function setRejectReasonVisibility(formData: FormData): Promise<voi
   revalidatePath(`/facilities/${facilityId}`);
   revalidatePath(`/facilities/${facilityId}/calendar`);
 }
+
+export async function deleteRejection(formData: FormData): Promise<void> {
+  const facilityId = String(formData.get("facility_id") ?? "");
+  const id = String(formData.get("id") ?? "");
+  if (!facilityId || !id) return;
+  await requireFacilityAdmin(facilityId);
+
+  const supabase = getSupabaseServer();
+  const { data: reservation } = await supabase
+    .from("reservations")
+    .select("facility_id, status, reject_reason")
+    .eq("id", id)
+    .maybeSingle();
+  if (
+    !reservation ||
+    reservation.facility_id !== facilityId ||
+    reservation.status !== "cancelled" ||
+    !reservation.reject_reason
+  ) {
+    return;
+  }
+
+  await supabase.from("reservations").delete().eq("id", id);
+
+  revalidatePath(`/teacher/${facilityId}/rejections`);
+  revalidatePath(`/facilities/${facilityId}`);
+  revalidatePath(`/facilities/${facilityId}/calendar`);
+}

@@ -18,17 +18,12 @@ export default async function TeacherStatsPage({
   const stats = await getFacilityUsageStats(facilityId);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8">
+    <div>
       <TeacherPageHeader
-        facility={facility}
-        facilityId={facilityId}
         title="누적 대여시간"
         description="확정된 예약 기준으로 학기·월별 누적 사용시간을 보여줍니다."
       />
-
-      <div className="mt-6">
-        <FacilityUsageStatsView stats={stats} />
-      </div>
+      <FacilityUsageStatsView stats={stats} />
     </div>
   );
 }

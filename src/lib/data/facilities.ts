@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import type { Facility } from "@/lib/types";
 
@@ -13,9 +14,10 @@ export async function getFacilities(opts?: { includeInactive?: boolean }): Promi
   return data as Facility[];
 }
 
-export async function getFacility(id: string): Promise<Facility | null> {
+// 같은 요청(레이아웃 + 페이지 등) 안에서 여러 번 호출돼도 DB 조회는 한 번만 일어나도록 캐싱합니다.
+export const getFacility = cache(async (id: string): Promise<Facility | null> => {
   const supabase = getSupabaseServer();
   const { data, error } = await supabase.from("facilities").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(`시설 정보를 불러오지 못했습니다: ${error.message}`);
   return data as Facility | null;
-}
+});

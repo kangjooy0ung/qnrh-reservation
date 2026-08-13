@@ -1,4 +1,5 @@
-import { setRejectReasonVisibility } from "@/app/actions/teacher-actions";
+import { deleteRejection, setRejectReasonVisibility } from "@/app/actions/teacher-actions";
+import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
 import type { ReservationWithRelations } from "@/lib/types";
 
 export function RejectReasonList({
@@ -32,17 +33,29 @@ export function RejectReasonList({
               {r.reject_reason_public ? "🌐 예약 페이지에 공개 중" : "🔒 비공개 (예약 페이지에 표시 안 됨)"}
             </p>
           </div>
-          <form action={setRejectReasonVisibility}>
-            <input type="hidden" name="facility_id" value={facilityId} />
-            <input type="hidden" name="id" value={r.id} />
-            <input type="hidden" name="public" value={r.reject_reason_public ? "false" : "true"} />
-            <button
-              type="submit"
-              className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
-            >
-              {r.reject_reason_public ? "비공개로 전환" : "다시 공개"}
-            </button>
-          </form>
+          <div className="flex shrink-0 items-center gap-2">
+            <form action={setRejectReasonVisibility}>
+              <input type="hidden" name="facility_id" value={facilityId} />
+              <input type="hidden" name="id" value={r.id} />
+              <input type="hidden" name="public" value={r.reject_reason_public ? "false" : "true"} />
+              <button
+                type="submit"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              >
+                {r.reject_reason_public ? "비공개로 전환" : "다시 공개"}
+              </button>
+            </form>
+            <form action={deleteRejection}>
+              <input type="hidden" name="facility_id" value={facilityId} />
+              <input type="hidden" name="id" value={r.id} />
+              <ConfirmSubmitButton
+                message="이 반려 내역을 완전히 삭제할까요? 되돌릴 수 없습니다."
+                className="rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
+              >
+                삭제
+              </ConfirmSubmitButton>
+            </form>
+          </div>
         </li>
       ))}
     </ul>

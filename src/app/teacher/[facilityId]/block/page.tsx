@@ -22,17 +22,12 @@ export default async function TeacherBlockPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8">
+    <div>
       <TeacherPageHeader
-        facility={facility}
-        facilityId={facilityId}
         title="시간대 사용 제한"
         description="담당 선생님이 직접 써야 하는 시간대를 막아 다른 사람이 예약하지 못하도록 합니다."
       />
-
-      <div className="mt-6">
-        <BlockSlotForm facilityId={facilityId} timeSlots={timeSlots} blockedReservations={blocked} />
-      </div>
+      <BlockSlotForm facilityId={facilityId} timeSlots={timeSlots} blockedReservations={blocked} />
     </div>
   );
 }

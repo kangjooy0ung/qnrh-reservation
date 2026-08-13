@@ -15,17 +15,9 @@ export default async function TeacherPasswordPage({
   if (!facility) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8">
-      <TeacherPageHeader
-        facility={facility}
-        facilityId={facilityId}
-        title="비밀번호 변경"
-        description="이 시설의 로그인 비밀번호를 변경합니다."
-      />
-
-      <div className="mt-6">
-        <ChangePasswordForm facilityId={facilityId} />
-      </div>
+    <div>
+      <TeacherPageHeader title="비밀번호 변경" description="이 시설의 로그인 비밀번호를 변경합니다." />
+      <ChangePasswordForm facilityId={facilityId} />
     </div>
   );
 }
