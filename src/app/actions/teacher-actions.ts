@@ -317,3 +317,33 @@ export async function deleteFacilityTimeSlot(formData: FormData): Promise<void> 
   revalidatePath(`/teacher/${facilityId}`);
   revalidatePath(`/facilities/${facilityId}`);
 }
+
+// ---------- 시설 공지 메모 ----------
+
+export async function updateFacilityNotice(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const facilityId = String(formData.get("facility_id") ?? "").trim();
+  await requireFacilityAdmin(facilityId);
+
+  const notice = String(formData.get("notice") ?? "").trim();
+  if (notice.length > 300) {
+    return { status: "error", message: "공지 메모는 300자 이내로 입력해 주세요." };
+  }
+
+  const supabase = getSupabaseServer();
+  const { error } = await supabase
+    .from("facilities")
+    .update({ teacher_notice: notice || null })
+    .eq("id", facilityId);
+
+  if (error) {
+    return { status: "error", message: `저장에 실패했습니다: ${error.message}` };
+  }
+
+  revalidatePath(`/teacher/${facilityId}`);
+  revalidatePath(`/facilities/${facilityId}`);
+  revalidatePath(`/facilities/${facilityId}/calendar`);
+  return { status: "success", message: "공지 메모가 저장되었습니다." };
+}

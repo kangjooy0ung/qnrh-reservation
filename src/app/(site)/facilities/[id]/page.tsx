@@ -64,6 +64,12 @@ export default async function FacilityDetailPage({
         </div>
       </div>
 
+      {facility.teacher_notice && (
+        <p className="mt-4 whitespace-pre-line rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          📌 담당 선생님 공지: {facility.teacher_notice}
+        </p>
+      )}
+
       {facility.description && (
         <p className="mt-4 rounded-2xl bg-white p-4 text-sm text-slate-600 border border-slate-200">
           {facility.description}
@@ -142,7 +148,9 @@ export default async function FacilityDetailPage({
               teacher_name: r.teacher_name,
               department: r.department,
               purpose: r.purpose,
-              status: r.status as "confirmed" | "pending" | "blocked",
+              reject_reason: r.reject_reason,
+              created_at: r.created_at,
+              status: r.status as "confirmed" | "pending" | "blocked" | "cancelled",
             }))}
           />
         </div>

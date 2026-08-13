@@ -140,6 +140,17 @@ function CreateForm({
       <Field label="연락처 (선택)">
         <input name="contact" maxLength={20} placeholder="예: 내선 1234" className="input" />
       </Field>
+      <Field label="취소 비밀번호 (숫자 4자리) * — 나중에 예약 취소 시 필요합니다">
+        <input
+          name="cancel_pin"
+          required
+          inputMode="numeric"
+          pattern="\d{4}"
+          maxLength={4}
+          placeholder="예: 1234"
+          className="input"
+        />
+      </Field>
 
       {requiresApproval && (
         <>
@@ -254,8 +265,16 @@ function CancelForm({
       ) : (
         <form action={formAction} className="flex flex-col gap-3">
           <input type="hidden" name="id" value={reservation.id} />
-          <Field label="예약을 취소하려면 예약자 성함을 다시 입력하세요">
-            <input name="teacher_name" required maxLength={20} className="input" />
+          <Field label="예약을 취소하려면 예약 시 설정한 취소 비밀번호(4자리)를 입력하세요">
+            <input
+              name="cancel_pin"
+              required
+              inputMode="numeric"
+              pattern="\d{4}"
+              maxLength={4}
+              placeholder="예: 1234"
+              className="input"
+            />
           </Field>
 
           {state.status === "error" && (

@@ -17,7 +17,8 @@ export default async function MyReservationsPage({
     <div>
       <h1 className="text-2xl font-bold text-slate-900">내 예약 확인</h1>
       <p className="mt-1 text-sm text-slate-500">
-        예약 시 입력한 성함으로 검색하면 내 예약 내역을 확인하고 취소할 수 있습니다.
+        예약 시 입력한 성함으로 검색해 내 예약 내역을 확인할 수 있습니다. 취소하려면 예약 시
+        설정한 취소 비밀번호(4자리)가 필요합니다.
       </p>
 
       <form className="mt-6 flex max-w-md gap-2">
@@ -90,7 +91,7 @@ export default async function MyReservationsPage({
                       <p className="mt-0.5 text-xs text-red-500">반려 사유: {r.reject_reason}</p>
                     )}
                   </div>
-                  {canCancel && <CancelReservationInline id={r.id} teacherName={r.teacher_name} />}
+                  {canCancel && <CancelReservationInline id={r.id} />}
                 </li>
               );
             })}

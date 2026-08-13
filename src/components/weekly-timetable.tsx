@@ -25,7 +25,9 @@ export type TimetableReservation = {
   teacher_name: string;
   department: string | null;
   purpose: string | null;
-  status: "confirmed" | "pending" | "blocked";
+  reject_reason: string | null;
+  created_at: string;
+  status: "confirmed" | "pending" | "blocked" | "cancelled";
 };
 
 type Selection =
@@ -75,6 +77,19 @@ export function WeeklyTimetable({
         const list = map.get(key) ?? [];
         list.push(r);
         map.set(key, list);
+      }
+    }
+    return map;
+  }, [reservations]);
+
+  // 담당 선생님이 사유를 남기고 반려/취소한 예약 중 가장 최근 것을 슬롯별로 안내합니다.
+  const rejectionMap = useMemo(() => {
+    const map = new Map<string, TimetableReservation>();
+    for (const r of reservations) {
+      if (r.status === "cancelled" && r.reject_reason) {
+        const key = `${r.reservation_date}__${r.time_slot_id}`;
+        const existing = map.get(key);
+        if (!existing || r.created_at > existing.created_at) map.set(key, r);
       }
     }
     return map;
@@ -299,6 +314,8 @@ export function WeeklyTimetable({
                     );
                   }
 
+                  const rejection = rejectionMap.get(key) ?? null;
+
                   return (
                     <td key={day.iso} className="px-1.5 py-1.5 align-top">
                       <button
@@ -322,6 +339,11 @@ export function WeeklyTimetable({
                       >
                         {disabled ? "마감" : inDrag ? "선택됨" : "예약 가능"}
                       </button>
+                      {rejection && !disabled && (
+                        <p className="mt-1 truncate text-[10px] text-slate-400" title={rejection.reject_reason ?? undefined}>
+                          ℹ️ 반려: {rejection.reject_reason}
+                        </p>
+                      )}
                     </td>
                   );
                 })}

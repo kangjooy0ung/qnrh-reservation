@@ -36,11 +36,12 @@ export default async function FacilityCalendarPage({
     getReservationsForFacilityInRange(id, days[0].iso, days[days.length - 1].iso),
   ]);
 
-  // 승인형 시설은 같은 슬롯에 pending 신청이 여러 건 있을 수 있으므로
-  // 행 개수가 아니라 점유된 (날짜,교시) 고유 슬롯 수로 집계합니다.
+  // 승인형 시설은 같은 슬롯에 pending 신청이 여러 건 있을 수 있고, 반려 사유 안내용으로
+  // cancelled 예약도 함께 내려오므로 실제 점유(confirmed/pending/blocked) 슬롯만 집계합니다.
   const countByDate = new Map<string, number>();
   const seenSlots = new Set<string>();
   for (const r of reservations) {
+    if (r.status === "cancelled") continue;
     const key = `${r.reservation_date}__${r.time_slot_id}`;
     if (seenSlots.has(key)) continue;
     seenSlots.add(key);

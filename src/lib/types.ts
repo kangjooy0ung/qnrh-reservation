@@ -10,6 +10,7 @@ export type Facility = {
   sort_order: number;
   is_active: boolean;
   requires_approval: boolean;
+  teacher_notice: string | null;
   created_at: string;
 };
 
@@ -37,6 +38,7 @@ export type Reservation = {
   request_note: string | null;
   status: ReservationStatus;
   reject_reason: string | null;
+  cancel_pin_hash: string | null;
   created_at: string;
   cancelled_at: string | null;
 };

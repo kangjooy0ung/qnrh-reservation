@@ -13,6 +13,7 @@ import { FacilityTimeSlotManager } from "@/components/teacher/facility-time-slot
 import { BlockSlotForm } from "@/components/teacher/block-slot-form";
 import { FacilityUsageStatsView } from "@/components/teacher/facility-usage-stats";
 import { ChangePasswordForm } from "@/components/teacher/change-password-form";
+import { FacilityNoticeForm } from "@/components/teacher/facility-notice-form";
 import type { ReservationWithRelations } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -66,6 +67,16 @@ export default async function TeacherFacilityDashboardPage({
           </button>
         </form>
       </div>
+
+      <section className="mt-8">
+        <h2 className="text-lg font-bold text-slate-900">시설 공지 메모</h2>
+        <p className="mt-1 text-sm text-slate-500">
+          여기에 남긴 메모는 이 시설의 예약 페이지 상단에 그대로 표시됩니다.
+        </p>
+        <div className="mt-3">
+          <FacilityNoticeForm facilityId={facilityId} initialNotice={facility.teacher_notice} />
+        </div>
+      </section>
 
       {facility.requires_approval && (
         <section className="mt-8">
