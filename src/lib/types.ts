@@ -38,6 +38,7 @@ export type Reservation = {
   request_note: string | null;
   status: ReservationStatus;
   reject_reason: string | null;
+  reject_reason_public: boolean;
   cancel_pin_hash: string | null;
   created_at: string;
   cancelled_at: string | null;

@@ -20,7 +20,9 @@ export async function getReservationsForFacilityInRange(
     .eq("facility_id", facilityId)
     .gte("reservation_date", startDate)
     .lte("reservation_date", endDate)
-    .or("status.in.(confirmed,pending,blocked),and(status.eq.cancelled,reject_reason.not.is.null)");
+    .or(
+      "status.in.(confirmed,pending,blocked),and(status.eq.cancelled,reject_reason.not.is.null,reject_reason_public.eq.true)"
+    );
   if (error) throw new Error(`예약 정보를 불러오지 못했습니다: ${error.message}`);
   return data as unknown as ReservationWithRelations[];
 }

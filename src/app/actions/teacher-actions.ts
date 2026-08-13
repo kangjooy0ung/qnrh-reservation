@@ -143,6 +143,7 @@ export async function rejectReservation(formData: FormData): Promise<void> {
   const facilityId = String(formData.get("facility_id") ?? "");
   const id = String(formData.get("id") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
+  const isPublic = formData.get("reason_public") === "on";
   if (!facilityId || !id) return;
   await requireFacilityAdmin(facilityId);
 
@@ -162,6 +163,7 @@ export async function rejectReservation(formData: FormData): Promise<void> {
       status: "cancelled",
       cancelled_at: new Date().toISOString(),
       reject_reason: reason || null,
+      reject_reason_public: isPublic,
     })
     .eq("id", id);
 

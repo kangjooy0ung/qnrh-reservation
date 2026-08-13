@@ -117,6 +117,10 @@ function ApplicantRow({
             placeholder="반려 사유 (선택)"
             className="input flex-1"
           />
+          <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
+            <input type="checkbox" name="reason_public" defaultChecked className="h-3.5 w-3.5" />
+            사유를 예약 페이지에 공개
+          </label>
           <ConfirmSubmitButton
             message={`${reservation.teacher_name} 선생님의 신청을 반려할까요?`}
             className="shrink-0 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
