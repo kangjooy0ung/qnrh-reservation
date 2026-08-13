@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 import { createReservation, cancelReservation } from "@/app/actions/reservation-actions";
 import { initialActionState } from "@/lib/action-state";
 import type { TimetableDay, TimetableReservation, TimetableSlot } from "@/components/weekly-timetable";
@@ -93,18 +93,18 @@ function CreateForm({
 }) {
   const [state, formAction, isPending] = useActionState(createReservation, initialActionState);
 
-  useEffect(() => {
-    if (state.status === "success") {
-      const timer = setTimeout(onClose, 900);
-      return () => clearTimeout(timer);
-    }
-  }, [state.status, onClose]);
-
   if (state.status === "success") {
     return (
       <div className="py-6 text-center">
         <p className="text-3xl">✅</p>
         <p className="mt-2 font-semibold text-slate-800">{state.message}</p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+        >
+          확인
+        </button>
       </div>
     );
   }
@@ -208,18 +208,18 @@ function CancelForm({
 }) {
   const [state, formAction, isPending] = useActionState(cancelReservation, initialActionState);
 
-  useEffect(() => {
-    if (state.status === "success") {
-      const timer = setTimeout(onClose, 900);
-      return () => clearTimeout(timer);
-    }
-  }, [state.status, onClose]);
-
   if (state.status === "success") {
     return (
       <div className="py-6 text-center">
         <p className="text-3xl">🗑️</p>
         <p className="mt-2 font-semibold text-slate-800">{state.message}</p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+        >
+          확인
+        </button>
       </div>
     );
   }
