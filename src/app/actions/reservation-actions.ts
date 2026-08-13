@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { getSupabaseServer } from "@/lib/supabase-server";
+import { hashPassword, verifyPassword } from "@/lib/password-hash";
 import type { ActionState } from "@/lib/action-state";
+
+const CANCEL_PIN_PATTERN = /^\d{4}$/;
 
 export async function createReservation(
   _prevState: ActionState,
@@ -16,6 +19,7 @@ export async function createReservation(
   const purpose = String(formData.get("purpose") ?? "").trim();
   const contact = String(formData.get("contact") ?? "").trim();
   const requestNote = String(formData.get("request_note") ?? "").trim();
+  const cancelPin = String(formData.get("cancel_pin") ?? "").trim();
 
   if (!facilityId || timeSlotIds.length === 0 || !reservationDate) {
     return { status: "error", message: "예약 정보가 올바르지 않습니다. 다시 시도해 주세요." };
@@ -25,6 +29,9 @@ export async function createReservation(
   }
   if (teacherName.length > 20) {
     return { status: "error", message: "예약자 성함이 너무 깁니다." };
+  }
+  if (!CANCEL_PIN_PATTERN.test(cancelPin)) {
+    return { status: "error", message: "취소 비밀번호는 숫자 4자리로 입력해 주세요." };
   }
 
   // 과거 날짜 예약 방지
@@ -47,6 +54,7 @@ export async function createReservation(
   }
   const requiresApproval = facility.requires_approval;
   const initialStatus = requiresApproval ? "pending" : "confirmed";
+  const cancelPinHash = await hashPassword(cancelPin);
 
   let successCount = 0;
   let duplicateCount = 0;
@@ -62,6 +70,7 @@ export async function createReservation(
       purpose: purpose || null,
       contact: contact || null,
       request_note: requiresApproval ? requestNote || null : null,
+      cancel_pin_hash: cancelPinHash,
       status: initialStatus,
     });
 
@@ -83,8 +92,8 @@ export async function createReservation(
     return {
       status: "success",
       message: requiresApproval
-        ? `${base} 신청이 접수되었습니다. 담당 선생님 승인 후 확정됩니다.`
-        : `${base}이 완료되었습니다.`,
+        ? `${base} 신청이 접수되었습니다. 담당 선생님 승인 후 확정됩니다. 취소 시 방금 입력한 비밀번호가 필요하니 잊지 마세요.`
+        : `${base}이 완료되었습니다. 취소 시 방금 입력한 비밀번호가 필요하니 잊지 마세요.`,
     };
   }
   if (successCount > 0) {
@@ -109,16 +118,16 @@ export async function cancelReservation(
   formData: FormData
 ): Promise<ActionState> {
   const id = String(formData.get("id") ?? "").trim();
-  const teacherName = String(formData.get("teacher_name") ?? "").trim();
+  const cancelPin = String(formData.get("cancel_pin") ?? "").trim();
 
-  if (!id || !teacherName) {
-    return { status: "error", message: "예약자 성함을 입력해 취소해 주세요." };
+  if (!id || !CANCEL_PIN_PATTERN.test(cancelPin)) {
+    return { status: "error", message: "취소 비밀번호(숫자 4자리)를 입력해 주세요." };
   }
 
   const supabase = getSupabaseServer();
   const { data: reservation, error: fetchError } = await supabase
     .from("reservations")
-    .select("id, teacher_name, facility_id, status")
+    .select("id, facility_id, status, cancel_pin_hash")
     .eq("id", id)
     .maybeSingle();
 
@@ -128,8 +137,14 @@ export async function cancelReservation(
   if (reservation.status === "cancelled") {
     return { status: "error", message: "이미 취소된 예약입니다." };
   }
-  if (reservation.teacher_name.trim() !== teacherName) {
-    return { status: "error", message: "예약자 성함이 일치하지 않아 취소할 수 없습니다." };
+  if (!reservation.cancel_pin_hash) {
+    return {
+      status: "error",
+      message: "취소 비밀번호가 설정되지 않은 예약입니다. 담당 선생님에게 문의해 주세요.",
+    };
+  }
+  if (!(await verifyPassword(cancelPin, reservation.cancel_pin_hash))) {
+    return { status: "error", message: "취소 비밀번호가 올바르지 않습니다." };
   }
 
   const { error } = await supabase

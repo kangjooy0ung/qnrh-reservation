@@ -169,3 +169,13 @@ where g.facility_id is null
   and not exists (
     select 1 from time_slots t2 where t2.facility_id = f.id and t2.label = g.label
   );
+
+-- ============================================================
+-- 예약 취소 비밀번호(PIN) + 시설별 담당 선생님 공지 메모
+-- ============================================================
+
+-- 예약 취소 시 예약자 이름 재입력 대신 사용하는 4자리 비밀번호(해시 저장)
+alter table reservations add column if not exists cancel_pin_hash text;
+
+-- 담당 선생님이 시설 예약 페이지 상단에 남기는 공지 메모
+alter table facilities add column if not exists teacher_notice text;

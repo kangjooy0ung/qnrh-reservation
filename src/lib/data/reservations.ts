@@ -6,6 +6,8 @@ import type { ReservationWithRelations } from "@/lib/types";
 const RELATION_SELECT =
   "*, facility:facilities(id,name,icon,color,location), time_slot:time_slots(id,label,start_time,end_time)";
 
+// 확정/대기/차단 예약에 더해, 담당 선생님이 사유를 남기고 반려/취소한 예약도 함께 가져옵니다.
+// (그 자리가 다시 예약 가능해져도 반려 사유를 시간표에 안내하기 위함. 사유 없는 단순 자진 취소는 제외)
 export async function getReservationsForFacilityInRange(
   facilityId: string,
   startDate: string,
@@ -16,9 +18,9 @@ export async function getReservationsForFacilityInRange(
     .from("reservations")
     .select(RELATION_SELECT)
     .eq("facility_id", facilityId)
-    .in("status", ["confirmed", "pending", "blocked"])
     .gte("reservation_date", startDate)
-    .lte("reservation_date", endDate);
+    .lte("reservation_date", endDate)
+    .or("status.in.(confirmed,pending,blocked),and(status.eq.cancelled,reject_reason.not.is.null)");
   if (error) throw new Error(`예약 정보를 불러오지 못했습니다: ${error.message}`);
   return data as unknown as ReservationWithRelations[];
 }
