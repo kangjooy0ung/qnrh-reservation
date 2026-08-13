@@ -349,3 +349,27 @@ export async function updateFacilityNotice(
   revalidatePath(`/facilities/${facilityId}/calendar`);
   return { status: "success", message: "공지 메모가 저장되었습니다." };
 }
+
+// ---------- 반려 사유 공개 여부 ----------
+
+export async function setRejectReasonVisibility(formData: FormData): Promise<void> {
+  const facilityId = String(formData.get("facility_id") ?? "");
+  const id = String(formData.get("id") ?? "");
+  const isPublic = formData.get("public") === "true";
+  if (!facilityId || !id) return;
+  await requireFacilityAdmin(facilityId);
+
+  const supabase = getSupabaseServer();
+  const { data: reservation } = await supabase
+    .from("reservations")
+    .select("facility_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!reservation || reservation.facility_id !== facilityId) return;
+
+  await supabase.from("reservations").update({ reject_reason_public: isPublic }).eq("id", id);
+
+  revalidatePath(`/teacher/${facilityId}/rejections`);
+  revalidatePath(`/facilities/${facilityId}`);
+  revalidatePath(`/facilities/${facilityId}/calendar`);
+}

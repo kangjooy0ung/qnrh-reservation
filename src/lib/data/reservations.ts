@@ -83,6 +83,52 @@ export async function getAllReservations(
   return data as unknown as ReservationWithRelations[];
 }
 
+// 사유를 남기고 반려/취소된 예약 최근 내역 (공개 여부와 무관하게 전부, 담당 선생님 전용 화면용)
+export async function getRecentRejectionsForFacility(
+  facilityId: string,
+  limit = 30
+): Promise<ReservationWithRelations[]> {
+  const supabase = getSupabaseServer();
+  const { data, error } = await supabase
+    .from("reservations")
+    .select(RELATION_SELECT)
+    .eq("facility_id", facilityId)
+    .eq("status", "cancelled")
+    .not("reject_reason", "is", null)
+    .order("cancelled_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`반려 내역을 불러오지 못했습니다: ${error.message}`);
+  return data as unknown as ReservationWithRelations[];
+}
+
+export type FacilityStatusCounts = { pending: number; confirmed: number; blocked: number };
+
+export async function getFacilityStatusCounts(facilityId: string): Promise<FacilityStatusCounts> {
+  const supabase = getSupabaseServer();
+  const [pending, confirmed, blocked] = await Promise.all([
+    supabase
+      .from("reservations")
+      .select("id", { count: "exact", head: true })
+      .eq("facility_id", facilityId)
+      .eq("status", "pending"),
+    supabase
+      .from("reservations")
+      .select("id", { count: "exact", head: true })
+      .eq("facility_id", facilityId)
+      .eq("status", "confirmed"),
+    supabase
+      .from("reservations")
+      .select("id", { count: "exact", head: true })
+      .eq("facility_id", facilityId)
+      .eq("status", "blocked"),
+  ]);
+  return {
+    pending: pending.count ?? 0,
+    confirmed: confirmed.count ?? 0,
+    blocked: blocked.count ?? 0,
+  };
+}
+
 export async function getTodayReservationCount(today: string): Promise<number> {
   const supabase = getSupabaseServer();
   const { count, error } = await supabase
