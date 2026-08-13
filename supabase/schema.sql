@@ -179,3 +179,10 @@ alter table reservations add column if not exists cancel_pin_hash text;
 
 -- 담당 선생님이 시설 예약 페이지 상단에 남기는 공지 메모
 alter table facilities add column if not exists teacher_notice text;
+
+-- ============================================================
+-- 반려 사유 공개 여부 선택
+-- ============================================================
+
+-- 담당 선생님이 반려할 때 그 사유를 예약 페이지(공개)에 노출할지 선택할 수 있도록 함
+alter table reservations add column if not exists reject_reason_public boolean not null default true;
