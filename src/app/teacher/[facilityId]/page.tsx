@@ -1,24 +1,14 @@
 import { notFound } from "next/navigation";
 import { getFacility } from "@/lib/data/facilities";
-import { getTimeSlotsForFacility } from "@/lib/data/time-slots";
-import {
-  getAllReservations,
-  getFacilityUsageStats,
-  getPendingReservationsForFacility,
-} from "@/lib/data/reservations";
-import { teacherLogout } from "@/app/actions/teacher-actions";
+import { getAllReservations, getPendingReservationsForFacility } from "@/lib/data/reservations";
+import { TeacherPageHeader } from "@/components/teacher/teacher-page-header";
 import { PendingApplicantGroup } from "@/components/teacher/pending-applicant-group";
 import { FacilityReservationList } from "@/components/teacher/facility-reservation-list";
-import { FacilityTimeSlotManager } from "@/components/teacher/facility-time-slot-manager";
-import { BlockSlotForm } from "@/components/teacher/block-slot-form";
-import { FacilityUsageStatsView } from "@/components/teacher/facility-usage-stats";
-import { ChangePasswordForm } from "@/components/teacher/change-password-form";
-import { FacilityNoticeForm } from "@/components/teacher/facility-notice-form";
 import type { ReservationWithRelations } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherFacilityDashboardPage({
+export default async function TeacherFacilityHomePage({
   params,
 }: {
   params: Promise<{ facilityId: string }>;
@@ -27,16 +17,10 @@ export default async function TeacherFacilityDashboardPage({
   const facility = await getFacility(facilityId);
   if (!facility) notFound();
 
-  const [pending, allReservations, timeSlots, stats] = await Promise.all([
-    getPendingReservationsForFacility(facilityId),
-    getAllReservations({ facilityId, status: "all" }),
-    getTimeSlotsForFacility(facility, { includeInactive: true }),
-    getFacilityUsageStats(facilityId),
+  const [pending, confirmed] = await Promise.all([
+    facility.requires_approval ? getPendingReservationsForFacility(facilityId) : Promise.resolve([]),
+    getAllReservations({ facilityId, status: "confirmed" }),
   ]);
-
-  const confirmed = allReservations.filter((r) => r.status === "confirmed");
-  const blocked = allReservations.filter((r) => r.status === "blocked");
-  const activeTimeSlots = timeSlots.filter((t) => t.is_active);
 
   const pendingGroups = new Map<
     string,
@@ -50,36 +34,14 @@ export default async function TeacherFacilityDashboardPage({
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            {facility.icon} {facility.name} 담당 선생님
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">예약 승인, 시간대 관리를 할 수 있습니다.</p>
-        </div>
-        <form action={teacherLogout}>
-          <button
-            type="submit"
-            className="shrink-0 rounded-lg px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50"
-          >
-            로그아웃
-          </button>
-        </form>
-      </div>
-
-      <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-900">시설 공지 메모</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          여기에 남긴 메모는 이 시설의 예약 페이지 상단에 그대로 표시됩니다.
-        </p>
-        <div className="mt-3">
-          <FacilityNoticeForm facilityId={facilityId} initialNotice={facility.teacher_notice} />
-        </div>
-      </section>
+    <div>
+      <TeacherPageHeader
+        title={`${facility.icon} ${facility.name} 담당 선생님`}
+        description="자주 확인하는 승인 대기와 예약 현황을 바로 볼 수 있습니다. 나머지 기능은 왼쪽(모바일은 상단) 메뉴에서 이동하세요."
+      />
 
       {facility.requires_approval && (
-        <section className="mt-8">
+        <section>
           <h2 className="text-lg font-bold text-slate-900">승인 대기 신청</h2>
           <div className="mt-3">
             {pendingGroups.size === 0 ? (
@@ -112,42 +74,6 @@ export default async function TeacherFacilityDashboardPage({
         <h2 className="text-lg font-bold text-slate-900">예약 현황</h2>
         <div className="mt-3">
           <FacilityReservationList facilityId={facilityId} reservations={confirmed} />
-        </div>
-      </section>
-
-      {facility.requires_approval && (
-        <section className="mt-8">
-          <h2 className="text-lg font-bold text-slate-900">교시 관리</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            이 시설만의 전용 시간대입니다. 추가/수정/삭제하면 예약 페이지에 바로 반영됩니다.
-          </p>
-          <div className="mt-3">
-            <FacilityTimeSlotManager facilityId={facilityId} timeSlots={timeSlots} />
-          </div>
-        </section>
-      )}
-
-      <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-900">시간대 사용 제한</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          담당 선생님이 직접 써야 하는 시간대를 막아 다른 사람이 예약하지 못하도록 합니다.
-        </p>
-        <div className="mt-3">
-          <BlockSlotForm facilityId={facilityId} timeSlots={activeTimeSlots} blockedReservations={blocked} />
-        </div>
-      </section>
-
-      <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-900">누적 대여시간</h2>
-        <div className="mt-3">
-          <FacilityUsageStatsView stats={stats} />
-        </div>
-      </section>
-
-      <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-900">비밀번호 변경</h2>
-        <div className="mt-3">
-          <ChangePasswordForm facilityId={facilityId} />
         </div>
       </section>
     </div>
