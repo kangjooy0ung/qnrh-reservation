@@ -16,7 +16,7 @@ export default async function HomePage() {
   const steps = [
     { title: "시설 선택", desc: `예약할 시설(${exampleList} 등)을 골라주세요.` },
     { title: "요일·교시 선택", desc: "주간 시간표에서 비어 있는 칸을 클릭하세요." },
-    { title: "이름 입력 후 예약", desc: "성함과 사용 목적을 입력하면 바로 예약이 확정됩니다." },
+    { title: "이름 입력 후 예약", desc: "성함과 사용 목적을 입력해 신청하면 담당 선생님 승인 후 예약이 확정됩니다." },
   ];
 
   return (
