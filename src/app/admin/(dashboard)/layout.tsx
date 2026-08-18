@@ -21,6 +21,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </span>
             <span className="text-sm font-bold text-slate-900">관리자 페이지</span>
           </Link>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link
+              href="/"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              ← 예약 페이지로 이동
+            </Link>
+            <form action={adminLogout}>
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+              >
+                로그아웃
+              </button>
+            </form>
+          </div>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3">
           {NAV_ITEMS.map((item) => (
@@ -30,33 +46,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </AdminNavLink>
           ))}
         </nav>
-        <div className="border-t border-slate-100 p-3">
-          <Link
-            href="/"
-            className="block rounded-lg px-3 py-2 text-xs font-medium text-slate-400 hover:bg-slate-50 hover:text-slate-600"
-          >
-            ← 예약 페이지로 이동
-          </Link>
-          <form action={adminLogout}>
-            <button
-              type="submit"
-              className="mt-1 w-full rounded-lg px-3 py-2 text-left text-xs font-medium text-red-500 hover:bg-red-50"
-            >
-              로그아웃
-            </button>
-          </form>
-        </div>
       </aside>
 
       <div className="flex-1">
         <header className="border-b border-slate-200 bg-white sm:hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <span className="text-sm font-bold text-slate-900">관리자 페이지</span>
-            <form action={adminLogout}>
-              <button type="submit" className="text-xs font-medium text-red-500">
-                로그아웃
-              </button>
-            </form>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                예약 페이지로
+              </Link>
+              <form action={adminLogout}>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+                >
+                  로그아웃
+                </button>
+              </form>
+            </div>
           </div>
           <nav className="flex gap-1 overflow-x-auto px-3 pb-3">
             {NAV_ITEMS.map((item) => (
