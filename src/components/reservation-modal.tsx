@@ -122,7 +122,7 @@ function CreateForm({
           name="teacher_name"
           required
           maxLength={20}
-          placeholder="예: 김민수"
+          placeholder="예: 강선생님"
           className="input"
         />
       </Field>
