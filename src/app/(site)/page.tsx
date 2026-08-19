@@ -20,7 +20,7 @@ export default async function HomePage() {
     { title: "요일·교시 선택", desc: "주간 시간표에서 비어 있는 칸을 클릭하세요." },
     {
       title: "이름 입력 후 예약",
-      desc: "성함과 사용 목적을 입력해 신청하세요. 시설에 따라 즉시 확정되거나 담당 선생님 승인 후 확정됩니다.",
+      desc: "성함과 사용 목적을 입력해 신청하세요.\n시설에 따라 즉시 확정되거나 담당 선생님 승인 후 확정됩니다.",
     },
   ];
 
@@ -60,7 +60,7 @@ export default async function HomePage() {
                 {i + 1}
               </span>
               <h3 className="mt-3 font-semibold text-slate-900">{step.title}</h3>
-              <p className="mt-1 text-sm text-slate-500">{step.desc}</p>
+              <p className="mt-1 whitespace-pre-line text-sm text-slate-500">{step.desc}</p>
             </div>
           ))}
         </div>
