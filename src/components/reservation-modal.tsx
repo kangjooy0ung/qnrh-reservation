@@ -117,12 +117,12 @@ function CreateForm({
         <input key={slot.id} type="hidden" name="time_slot_id" value={slot.id} />
       ))}
 
-      <Field label="예약자 성함 *">
+      <Field label="예약자 성함" required>
         <input
           name="teacher_name"
           required
           maxLength={20}
-          placeholder="예: 김선생"
+          placeholder="예: 강선생님"
           className="input"
         />
       </Field>
@@ -140,7 +140,7 @@ function CreateForm({
       <Field label="연락처 (선택)">
         <input name="contact" maxLength={20} placeholder="예: 내선 1234" className="input" />
       </Field>
-      <Field label="취소 비밀번호 (숫자 4자리) * — 나중에 예약 취소 시 필요합니다">
+      <Field label="취소 비밀번호 (숫자 4자리)" required>
         <input
           name="cancel_pin"
           required
@@ -151,6 +151,9 @@ function CreateForm({
           className="input"
         />
       </Field>
+      <p className="-mt-2 text-[11px] text-slate-400">
+        나중에 예약을 취소할 때 이 비밀번호가 필요합니다. 잊지 않도록 기억해 주세요.
+      </p>
 
       {requiresApproval && (
         <>
@@ -265,7 +268,7 @@ function CancelForm({
       ) : (
         <form action={formAction} className="flex flex-col gap-3">
           <input type="hidden" name="id" value={reservation.id} />
-          <Field label="예약을 취소하려면 예약 시 설정한 취소 비밀번호(4자리)를 입력하세요">
+          <Field label="예약을 취소하려면 예약 시 설정한 취소 비밀번호(4자리)를 입력하세요" required>
             <input
               name="cancel_pin"
               required
@@ -294,10 +297,25 @@ function CancelForm({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
-      {label}
+    <label
+      className={`flex flex-col gap-1 text-xs ${
+        required ? "font-bold text-slate-800" : "font-medium text-slate-500"
+      }`}
+    >
+      <span>
+        {label}
+        {required && <span className="ml-0.5 text-red-500">* 필수</span>}
+      </span>
       {children}
     </label>
   );
