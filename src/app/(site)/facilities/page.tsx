@@ -52,7 +52,12 @@ export default async function FacilitiesPage({
       ) : (
         <div className="flex flex-col gap-10">
           <section>
-            <h2 className="text-lg font-bold text-slate-900">⚡ 바로 예약 가능한 시설</h2>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                승인 없이
+              </span>
+              <h2 className="text-lg font-bold text-slate-900">바로 예약 가능한 시설</h2>
+            </div>
             <p className="mt-1 text-sm text-slate-500">
               선착순으로 신청하면 즉시 예약이 확정됩니다. 별도 승인 절차가 없습니다.
             </p>
@@ -70,7 +75,12 @@ export default async function FacilitiesPage({
           </section>
 
           <section>
-            <h2 className="text-lg font-bold text-slate-900">🧑‍🏫 승인이 필요한 시설</h2>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
+                승인 필요
+              </span>
+              <h2 className="text-lg font-bold text-slate-900">승인이 필요한 시설</h2>
+            </div>
             <p className="mt-1 text-sm text-slate-500">
               신청 후 담당 선생님의 승인을 받아야 예약이 확정됩니다. 같은 시간에 여러 명이 신청할
               수 있습니다.

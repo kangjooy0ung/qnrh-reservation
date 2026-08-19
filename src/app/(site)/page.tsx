@@ -81,9 +81,12 @@ export default async function HomePage() {
           <div className="flex flex-col gap-6">
             {instantFacilities.length > 0 && (
               <div>
-                <p className="mb-2 text-xs font-semibold text-slate-400">
-                  ⚡ 바로 예약 가능한 시설 (선착순)
-                </p>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                    승인 없이
+                  </span>
+                  <span className="text-sm font-bold text-slate-800">바로 예약 가능한 시설</span>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {instantFacilities.map((facility) => (
                     <FacilityPreviewCard key={facility.id} facility={facility} />
@@ -93,9 +96,12 @@ export default async function HomePage() {
             )}
             {approvalFacilities.length > 0 && (
               <div>
-                <p className="mb-2 text-xs font-semibold text-slate-400">
-                  🧑‍🏫 승인이 필요한 시설
-                </p>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
+                    승인 필요
+                  </span>
+                  <span className="text-sm font-bold text-slate-800">승인이 필요한 시설</span>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {approvalFacilities.map((facility) => (
                     <FacilityPreviewCard key={facility.id} facility={facility} />
