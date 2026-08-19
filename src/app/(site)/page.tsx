@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { getFacilities } from "@/lib/data/facilities";
 import { getNotices } from "@/lib/data/notices";
+import type { Facility } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [facilities, notices] = await Promise.all([getFacilities(), getNotices()]);
-  const topFacilities = facilities.slice(0, 6);
+  const instantFacilities = facilities.filter((f) => !f.requires_approval).slice(0, 3);
+  const approvalFacilities = facilities.filter((f) => f.requires_approval).slice(0, 3);
   const topNotices = notices.slice(0, 3);
 
   const exampleNames = facilities.slice(0, 3).map((f) => f.name);
@@ -16,7 +18,10 @@ export default async function HomePage() {
   const steps = [
     { title: "시설 선택", desc: `예약할 시설(${exampleList} 등)을 골라주세요.` },
     { title: "요일·교시 선택", desc: "주간 시간표에서 비어 있는 칸을 클릭하세요." },
-    { title: "이름 입력 후 예약", desc: "성함과 사용 목적을 입력해 신청하면 담당 선생님 승인 후 예약이 확정됩니다." },
+    {
+      title: "이름 입력 후 예약",
+      desc: "성함과 사용 목적을 입력해 신청하세요. 시설에 따라 즉시 확정되거나 담당 선생님 승인 후 확정됩니다.",
+    },
   ];
 
   return (
@@ -68,34 +73,36 @@ export default async function HomePage() {
             전체 보기 →
           </Link>
         </div>
-        {topFacilities.length === 0 ? (
+        {instantFacilities.length === 0 && approvalFacilities.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-400">
             등록된 시설이 없습니다. 관리자 페이지에서 시설을 추가해 주세요.
           </p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {topFacilities.map((facility) => (
-              <Link
-                key={facility.id}
-                href={`/facilities/${facility.id}`}
-                className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl leading-none" aria-hidden="true">
-                    {facility.icon}
-                  </span>
-                  <div>
-                    <p className="font-semibold text-slate-900 group-hover:text-emerald-700">
-                      {facility.name}
-                    </p>
-                    <p className="text-xs text-slate-400">{facility.location ?? facility.category}</p>
-                  </div>
+          <div className="flex flex-col gap-6">
+            {instantFacilities.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold text-slate-400">
+                  ⚡ 바로 예약 가능한 시설 (선착순)
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {instantFacilities.map((facility) => (
+                    <FacilityPreviewCard key={facility.id} facility={facility} />
+                  ))}
                 </div>
-                {facility.description && (
-                  <p className="mt-3 line-clamp-2 text-sm text-slate-500">{facility.description}</p>
-                )}
-              </Link>
-            ))}
+              </div>
+            )}
+            {approvalFacilities.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold text-slate-400">
+                  🧑‍🏫 승인이 필요한 시설
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {approvalFacilities.map((facility) => (
+                    <FacilityPreviewCard key={facility.id} facility={facility} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -139,5 +146,29 @@ export default async function HomePage() {
         )}
       </section>
     </div>
+  );
+}
+
+function FacilityPreviewCard({ facility }: { facility: Facility }) {
+  return (
+    <Link
+      href={`/facilities/${facility.id}`}
+      className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-3xl leading-none" aria-hidden="true">
+          {facility.icon}
+        </span>
+        <div>
+          <p className="font-semibold text-slate-900 group-hover:text-emerald-700">
+            {facility.name}
+          </p>
+          <p className="text-xs text-slate-400">{facility.location ?? facility.category}</p>
+        </div>
+      </div>
+      {facility.description && (
+        <p className="mt-3 line-clamp-2 text-sm text-slate-500">{facility.description}</p>
+      )}
+    </Link>
   );
 }
