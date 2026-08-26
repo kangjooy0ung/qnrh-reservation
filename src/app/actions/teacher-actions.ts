@@ -104,20 +104,18 @@ export async function changeFacilityPassword(
   return { status: "success", message: "비밀번호가 변경되었습니다." };
 }
 
-export async function approveReservation(formData: FormData): Promise<void> {
-  const facilityId = String(formData.get("facility_id") ?? "");
-  const id = String(formData.get("id") ?? "");
-  if (!facilityId || !id) return;
-  await requireFacilityAdmin(facilityId);
-
-  const supabase = getSupabaseServer();
+async function approveOne(
+  supabase: ReturnType<typeof getSupabaseServer>,
+  facilityId: string,
+  id: string
+): Promise<boolean> {
   const { data: reservation } = await supabase
     .from("reservations")
     .select("facility_id, reservation_date, time_slot_id, status")
     .eq("id", id)
     .maybeSingle();
   if (!reservation || reservation.facility_id !== facilityId || reservation.status !== "pending") {
-    return;
+    return false;
   }
 
   await supabase.from("reservations").update({ status: "confirmed" }).eq("id", id);
@@ -136,7 +134,58 @@ export async function approveReservation(formData: FormData): Promise<void> {
     .eq("status", "pending")
     .neq("id", id);
 
+  return true;
+}
+
+export async function approveReservation(formData: FormData): Promise<void> {
+  const facilityId = String(formData.get("facility_id") ?? "");
+  const id = String(formData.get("id") ?? "");
+  if (!facilityId || !id) return;
+  await requireFacilityAdmin(facilityId);
+
+  const supabase = getSupabaseServer();
+  await approveOne(supabase, facilityId, id);
+
   revalidateFacility(facilityId);
+}
+
+export async function bulkApproveReservations(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const facilityId = String(formData.get("facility_id") ?? "").trim();
+  const ids = formData.getAll("id").map((v) => String(v).trim()).filter(Boolean);
+  if (!facilityId) {
+    return { status: "error", message: "시설 정보가 올바르지 않습니다." };
+  }
+  await requireFacilityAdmin(facilityId);
+
+  if (ids.length === 0) {
+    return { status: "error", message: "승인할 신청을 선택해 주세요." };
+  }
+
+  const supabase = getSupabaseServer();
+  let approvedCount = 0;
+  for (const id of ids) {
+    if (await approveOne(supabase, facilityId, id)) approvedCount += 1;
+  }
+
+  revalidateFacility(facilityId);
+
+  const skippedCount = ids.length - approvedCount;
+  if (approvedCount === 0) {
+    return {
+      status: "error",
+      message: "승인할 수 있는 신청이 없습니다. 이미 처리되었을 수 있으니 목록을 새로고침해 주세요.",
+    };
+  }
+  return {
+    status: "success",
+    message:
+      skippedCount > 0
+        ? `${approvedCount}건을 승인했습니다. ${skippedCount}건은 이미 처리되어 제외되었습니다.`
+        : `${approvedCount}건을 승인했습니다.`,
+  };
 }
 
 export async function rejectReservation(formData: FormData): Promise<void> {

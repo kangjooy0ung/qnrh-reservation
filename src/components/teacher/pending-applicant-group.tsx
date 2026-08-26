@@ -11,12 +11,16 @@ export function PendingApplicantGroup({
   timeSlotLabel,
   timeSlotRange,
   applicants,
+  selectedIds,
+  onToggle,
 }: {
   facilityId: string;
   reservationDate: string;
   timeSlotLabel: string;
   timeSlotRange: string;
   applicants: ReservationWithRelations[];
+  selectedIds?: Set<string>;
+  onToggle?: (id: string) => void;
 }) {
   return (
     <li className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
@@ -32,7 +36,13 @@ export function PendingApplicantGroup({
 
       <ul className="mt-3 flex flex-col gap-2">
         {applicants.map((r) => (
-          <ApplicantRow key={r.id} facilityId={facilityId} reservation={r} />
+          <ApplicantRow
+            key={r.id}
+            facilityId={facilityId}
+            reservation={r}
+            selected={selectedIds?.has(r.id) ?? false}
+            onToggle={onToggle}
+          />
         ))}
       </ul>
     </li>
@@ -42,15 +52,30 @@ export function PendingApplicantGroup({
 function ApplicantRow({
   facilityId,
   reservation,
+  selected,
+  onToggle,
 }: {
   facilityId: string;
   reservation: ReservationWithRelations;
+  selected: boolean;
+  onToggle?: (id: string) => void;
 }) {
   const [showReject, setShowReject] = useState(false);
 
   return (
     <li className="rounded-xl border border-amber-100 bg-white p-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
+        {onToggle && (
+          <label className="flex shrink-0 items-center pt-0.5">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={() => onToggle(reservation.id)}
+              className="h-3.5 w-3.5"
+              aria-label={`${reservation.teacher_name} 선생님 신청 선택`}
+            />
+          </label>
+        )}
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500 sm:grid-cols-4">
           <div>
             <dt className="text-slate-400">신청자</dt>
