@@ -13,7 +13,7 @@ export async function createReservation(
 ): Promise<ActionState> {
   const facilityId = String(formData.get("facility_id") ?? "").trim();
   const timeSlotIds = formData.getAll("time_slot_id").map((v) => String(v).trim()).filter(Boolean);
-  const reservationDate = String(formData.get("reservation_date") ?? "").trim();
+  const reservationDates = formData.getAll("reservation_date").map((v) => String(v).trim()).filter(Boolean);
   const teacherName = String(formData.get("teacher_name") ?? "").trim();
   const department = String(formData.get("department") ?? "").trim();
   const purpose = String(formData.get("purpose") ?? "").trim();
@@ -21,7 +21,11 @@ export async function createReservation(
   const requestNote = String(formData.get("request_note") ?? "").trim();
   const cancelPin = String(formData.get("cancel_pin") ?? "").trim();
 
-  if (!facilityId || timeSlotIds.length === 0 || !reservationDate) {
+  if (
+    !facilityId ||
+    timeSlotIds.length === 0 ||
+    timeSlotIds.length !== reservationDates.length
+  ) {
     return { status: "error", message: "예약 정보가 올바르지 않습니다. 다시 시도해 주세요." };
   }
   if (!teacherName) {
@@ -37,8 +41,7 @@ export async function createReservation(
   // 과거 날짜 예약 방지
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const targetDate = new Date(`${reservationDate}T00:00:00`);
-  if (targetDate < today) {
+  if (reservationDates.some((date) => new Date(`${date}T00:00:00`) < today)) {
     return { status: "error", message: "지난 날짜는 예약할 수 없습니다." };
   }
 
@@ -60,11 +63,11 @@ export async function createReservation(
   let duplicateCount = 0;
   let otherErrorMessage: string | null = null;
 
-  for (const timeSlotId of timeSlotIds) {
+  for (let i = 0; i < timeSlotIds.length; i += 1) {
     const { error } = await supabase.from("reservations").insert({
       facility_id: facilityId,
-      time_slot_id: timeSlotId,
-      reservation_date: reservationDate,
+      time_slot_id: timeSlotIds[i],
+      reservation_date: reservationDates[i],
       teacher_name: teacherName,
       department: department || null,
       purpose: purpose || null,

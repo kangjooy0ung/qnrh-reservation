@@ -30,11 +30,12 @@ export type TimetableReservation = {
   status: "confirmed" | "pending" | "blocked" | "cancelled";
 };
 
+export type SelectedSlot = { day: TimetableDay; slot: TimetableSlot };
+
 type Selection =
   | {
       type: "create";
-      day: TimetableDay;
-      slots: TimetableSlot[];
+      items: SelectedSlot[];
       pendingCount: number;
       contiguous: boolean;
     }
@@ -46,10 +47,10 @@ type DragState = {
   currentIndex: number;
 };
 
-type MultiSelectState = {
-  dayIso: string;
-  indices: Set<number>;
-};
+// 날짜/요일을 가리지 않고 선택된 (dayIso, 교시 index) 쌍을 담습니다. 키 형식: `${dayIso}__${index}`
+function selectionKey(dayIso: string, index: number) {
+  return `${dayIso}__${index}`;
+}
 
 export function WeeklyTimetable({
   facilityId,
@@ -69,7 +70,7 @@ export function WeeklyTimetable({
   const [selected, setSelected] = useState<Selection | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [multiMode, setMultiMode] = useState(false);
-  const [multiSelection, setMultiSelection] = useState<MultiSelectState | null>(null);
+  const [multiSelection, setMultiSelection] = useState<Set<string>>(new Set());
 
   // 슬롯을 점유하는 예약(confirmed/blocked, 최대 1건)과 승인 대기 중인 신청(pending, 여러 건 가능)을 구분합니다.
   const occupyingMap = useMemo(() => {
@@ -174,25 +175,27 @@ export function WeeklyTimetable({
           const to = Math.max(current.anchorIndex, current.currentIndex);
 
           if (multiMode) {
-            // 비연속 선택 모드: 클릭한(드래그하지 않은) 교시는 켜고/끄고, 드래그한 범위는 통째로 추가합니다.
+            // 비연속/여러 날짜 선택 모드: 클릭한(드래그하지 않은) 교시는 켜고/끄고, 드래그한 범위는 통째로 추가합니다.
             setMultiSelection((prev) => {
-              const indices = prev && prev.dayIso === day.iso ? new Set(prev.indices) : new Set<number>();
+              const next = new Set(prev);
               if (from === to) {
-                if (indices.has(from)) indices.delete(from);
-                else indices.add(from);
+                const k = selectionKey(day.iso, from);
+                if (next.has(k)) next.delete(k);
+                else next.add(k);
               } else {
-                for (let i = from; i <= to; i += 1) indices.add(i);
+                for (let i = from; i <= to; i += 1) next.add(selectionKey(day.iso, i));
               }
-              return indices.size > 0 ? { dayIso: day.iso, indices } : null;
+              return next;
             });
           } else {
             const slots = timeSlots.slice(from, to + 1);
             if (slots.length > 0) {
+              const items = slots.map((slot) => ({ day, slot }));
               const pendingCount = slots.reduce(
                 (sum, slot) => sum + (pendingMap.get(`${day.iso}__${slot.id}`)?.length ?? 0),
                 0
               );
-              setSelected({ type: "create", day, slots, pendingCount, contiguous: true });
+              setSelected({ type: "create", items, pendingCount, contiguous: true });
             }
           }
         }
@@ -232,7 +235,7 @@ export function WeeklyTimetable({
           type="button"
           onClick={() => {
             setMultiMode((v) => !v);
-            setMultiSelection(null);
+            setMultiSelection(new Set());
             setDrag(null);
           }}
           className={`inline-flex shrink-0 items-center rounded-lg border-[1.5px] px-4 py-2 text-xs font-medium transition ${
@@ -245,7 +248,7 @@ export function WeeklyTimetable({
         </button>
         {multiMode && (
           <p className="text-[11px] text-slate-400">
-            원하는 교시를 각각 눌러 선택한 뒤, 아래 버튼으로 한 번에 예약하세요.
+            날짜/교시를 가리지 않고 원하는 칸을 각각 눌러 선택한 뒤, 아래 버튼으로 한 번에 예약하세요.
           </p>
         )}
       </div>
@@ -294,9 +297,7 @@ export function WeeklyTimetable({
                     slotIndex >= Math.min(drag.anchorIndex, drag.currentIndex) &&
                     slotIndex <= Math.max(drag.anchorIndex, drag.currentIndex)
                   );
-                  const isMultiSelected = Boolean(
-                    multiMode && multiSelection?.dayIso === day.iso && multiSelection.indices.has(slotIndex)
-                  );
+                  const isMultiSelected = multiMode && multiSelection.has(selectionKey(day.iso, slotIndex));
                   const highlighted = inDrag || isMultiSelected;
 
                   if (occupying) {
@@ -428,16 +429,19 @@ export function WeeklyTimetable({
         </span>
       </div>
 
-      {multiMode && multiSelection && multiSelection.indices.size > 0 && (
+      {multiMode && multiSelection.size > 0 && (
         <div className="sticky bottom-3 mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 shadow-sm">
           <p className="text-sm font-semibold text-sky-700">
-            {weekDays.find((d) => d.iso === multiSelection.dayIso)?.label}요일{" "}
-            {multiSelection.indices.size}개 교시 선택됨
+            {multiSelection.size}개 교시 선택됨
+            {(() => {
+              const dayCount = new Set(Array.from(multiSelection, (k) => k.split("__")[0])).size;
+              return dayCount > 1 ? ` (${dayCount}개 날짜)` : "";
+            })()}
           </p>
           <div className="ml-auto flex gap-2">
             <button
               type="button"
-              onClick={() => setMultiSelection(null)}
+              onClick={() => setMultiSelection(new Set())}
               className="rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-medium text-sky-600 hover:bg-sky-100"
             >
               선택 초기화
@@ -445,16 +449,32 @@ export function WeeklyTimetable({
             <button
               type="button"
               onClick={() => {
-                const day = weekDays.find((d) => d.iso === multiSelection.dayIso);
-                if (!day) return;
-                const indices = Array.from(multiSelection.indices).sort((a, b) => a - b);
-                const slots = indices.map((i) => timeSlots[i]);
-                const contiguous = indices[indices.length - 1] - indices[0] + 1 === indices.length;
-                const pendingCount = slots.reduce(
-                  (sum, slot) => sum + (pendingMap.get(`${day.iso}__${slot.id}`)?.length ?? 0),
+                const items = Array.from(multiSelection)
+                  .map((key) => {
+                    const [dayIso, indexStr] = key.split("__");
+                    const day = weekDays.find((d) => d.iso === dayIso);
+                    const slot = timeSlots[Number(indexStr)];
+                    return day && slot ? { day, slot } : null;
+                  })
+                  .filter((item): item is SelectedSlot => item !== null)
+                  .sort((a, b) =>
+                    a.day.iso !== b.day.iso
+                      ? a.day.iso.localeCompare(b.day.iso)
+                      : timeSlots.indexOf(a.slot) - timeSlots.indexOf(b.slot)
+                  );
+                if (items.length === 0) return;
+
+                const sameDay = items.every((item) => item.day.iso === items[0].day.iso);
+                let contiguous = false;
+                if (sameDay) {
+                  const indices = items.map((item) => timeSlots.indexOf(item.slot)).sort((a, b) => a - b);
+                  contiguous = indices[indices.length - 1] - indices[0] + 1 === indices.length;
+                }
+                const pendingCount = items.reduce(
+                  (sum, item) => sum + (pendingMap.get(`${item.day.iso}__${item.slot.id}`)?.length ?? 0),
                   0
                 );
-                setSelected({ type: "create", day, slots, pendingCount, contiguous });
+                setSelected({ type: "create", items, pendingCount, contiguous });
               }}
               className="rounded-lg bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-sky-700"
             >
@@ -469,14 +489,13 @@ export function WeeklyTimetable({
           facilityId={facilityId}
           facilityName={facilityName}
           requiresApproval={requiresApproval}
-          day={selected.day}
-          slots={selected.slots}
+          items={selected.items}
           reservation={null}
           pendingCount={selected.pendingCount}
           contiguous={selected.contiguous}
           onClose={() => {
             setSelected(null);
-            setMultiSelection(null);
+            setMultiSelection(new Set());
             setMultiMode(false);
           }}
         />
@@ -486,8 +505,7 @@ export function WeeklyTimetable({
           facilityId={facilityId}
           facilityName={facilityName}
           requiresApproval={requiresApproval}
-          day={selected.day}
-          slots={[selected.slot]}
+          items={[{ day: selected.day, slot: selected.slot }]}
           reservation={selected.reservation}
           pendingCount={0}
           onClose={() => setSelected(null)}
