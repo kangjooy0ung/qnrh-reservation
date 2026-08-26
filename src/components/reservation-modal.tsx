@@ -1,16 +1,35 @@
 "use client";
 
-import { useActionState } from "react";
+import { Fragment, useActionState } from "react";
 import { createReservation, cancelReservation } from "@/app/actions/reservation-actions";
 import { initialActionState } from "@/lib/action-state";
-import type { TimetableDay, TimetableReservation, TimetableSlot } from "@/components/weekly-timetable";
+import type { SelectedSlot, TimetableReservation } from "@/components/weekly-timetable";
+
+function buildSlotLabel(items: SelectedSlot[], contiguous: boolean) {
+  if (items.length === 1) {
+    const { day, slot } = items[0];
+    return `${day.label}요일 ${day.monthDay} · ${slot.label} (${slot.start_time}~${slot.end_time})`;
+  }
+
+  const sameDay = items.every((item) => item.day.iso === items[0].day.iso);
+  if (sameDay) {
+    const day = items[0].day;
+    if (contiguous) {
+      const first = items[0].slot;
+      const last = items[items.length - 1].slot;
+      return `${day.label}요일 ${day.monthDay} · ${first.label}~${last.label} (총 ${items.length}개 교시, ${first.start_time}~${last.end_time})`;
+    }
+    return `${day.label}요일 ${day.monthDay} · ${items.map((i) => i.slot.label).join(", ")} (총 ${items.length}개 교시)`;
+  }
+
+  return `${items.map((i) => `${i.day.monthDay}(${i.day.label}) ${i.slot.label}`).join(", ")} (총 ${items.length}개 교시, 여러 날짜)`;
+}
 
 export function ReservationModal({
   facilityId,
   facilityName,
   requiresApproval,
-  day,
-  slots,
+  items,
   reservation,
   pendingCount = 0,
   contiguous = true,
@@ -19,21 +38,13 @@ export function ReservationModal({
   facilityId: string;
   facilityName: string;
   requiresApproval: boolean;
-  day: TimetableDay;
-  slots: TimetableSlot[];
+  items: SelectedSlot[];
   reservation: TimetableReservation | null;
   pendingCount?: number;
   contiguous?: boolean;
   onClose: () => void;
 }) {
-  const first = slots[0];
-  const last = slots[slots.length - 1];
-  const slotLabel =
-    slots.length > 1
-      ? contiguous
-        ? `${first.label}~${last.label} (총 ${slots.length}개 교시, ${first.start_time}~${last.end_time})`
-        : `${slots.map((s) => s.label).join(", ")} (총 ${slots.length}개 교시, 비연속)`
-      : `${first.label} (${first.start_time}~${first.end_time})`;
+  const slotLabel = buildSlotLabel(items, contiguous);
 
   return (
     <div
@@ -47,7 +58,7 @@ export function ReservationModal({
         <div className="mb-4 flex items-start justify-between">
           <div>
             <p className="text-xs font-medium text-slate-400">
-              {facilityName} · {day.label}요일 {day.monthDay} · {slotLabel}
+              {facilityName} · {slotLabel}
             </p>
             <h3 className="mt-1 text-lg font-bold text-slate-900">
               {reservation ? "예약 정보" : "시설 예약하기"}
@@ -69,8 +80,7 @@ export function ReservationModal({
           <CreateForm
             facilityId={facilityId}
             requiresApproval={requiresApproval}
-            day={day}
-            slots={slots}
+            items={items}
             pendingCount={pendingCount}
             onClose={onClose}
           />
@@ -83,15 +93,13 @@ export function ReservationModal({
 function CreateForm({
   facilityId,
   requiresApproval,
-  day,
-  slots,
+  items,
   pendingCount,
   onClose,
 }: {
   facilityId: string;
   requiresApproval: boolean;
-  day: TimetableDay;
-  slots: TimetableSlot[];
+  items: SelectedSlot[];
   pendingCount: number;
   onClose: () => void;
 }) {
@@ -116,9 +124,11 @@ function CreateForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="facility_id" value={facilityId} />
-      <input type="hidden" name="reservation_date" value={day.iso} />
-      {slots.map((slot) => (
-        <input key={slot.id} type="hidden" name="time_slot_id" value={slot.id} />
+      {items.map(({ day, slot }) => (
+        <Fragment key={`${day.iso}__${slot.id}`}>
+          <input type="hidden" name="reservation_date" value={day.iso} />
+          <input type="hidden" name="time_slot_id" value={slot.id} />
+        </Fragment>
       ))}
 
       <Field label="예약자 성함" required>
@@ -195,11 +205,11 @@ function CreateForm({
         {isPending
           ? "예약 처리 중..."
           : requiresApproval
-            ? slots.length > 1
-              ? `${slots.length}개 교시 예약 신청하기`
+            ? items.length > 1
+              ? `${items.length}개 교시 예약 신청하기`
               : "예약 신청하기"
-            : slots.length > 1
-              ? `${slots.length}개 교시 예약 확정하기`
+            : items.length > 1
+              ? `${items.length}개 교시 예약 확정하기`
               : "예약 확정하기"}
       </button>
     </form>
