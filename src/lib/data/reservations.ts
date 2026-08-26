@@ -152,9 +152,12 @@ export type FacilityUsageStats = {
   monthly: { month: string; minutes: number }[];
 };
 
-// 확정된 예약 기준으로 이번 학기 누적 대여시간을 월별로 집계합니다.
-export async function getFacilityUsageStats(facilityId: string): Promise<FacilityUsageStats> {
-  const { label, start, end } = getSemesterRange();
+// 확정된 예약을 날짜 범위로 조회해 월별/총 누적 대여시간(분)을 집계합니다.
+async function computeUsageMinutes(
+  facilityId: string,
+  start: string,
+  end: string
+): Promise<{ totalMinutes: number; monthly: { month: string; minutes: number }[] }> {
   const supabase = getSupabaseServer();
   const { data, error } = await supabase
     .from("reservations")
@@ -166,7 +169,7 @@ export async function getFacilityUsageStats(facilityId: string): Promise<Facilit
   if (error) throw new Error(`누적 대여시간을 불러오지 못했습니다: ${error.message}`);
 
   const monthlyMap = new Map<string, number>();
-  let semesterMinutes = 0;
+  let totalMinutes = 0;
   for (const row of (data ?? []) as unknown as {
     reservation_date: string;
     time_slot: { start_time: string; end_time: string } | null;
@@ -176,12 +179,36 @@ export async function getFacilityUsageStats(facilityId: string): Promise<Facilit
     if (minutes <= 0) continue;
     const month = row.reservation_date.slice(0, 7);
     monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + minutes);
-    semesterMinutes += minutes;
+    totalMinutes += minutes;
   }
 
   const monthly = Array.from(monthlyMap.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, minutes]) => ({ month, minutes }));
 
-  return { semesterLabel: label, semesterMinutes, monthly };
+  return { totalMinutes, monthly };
+}
+
+// 확정된 예약 기준으로 이번 학기 누적 대여시간을 월별로 집계합니다.
+export async function getFacilityUsageStats(facilityId: string): Promise<FacilityUsageStats> {
+  const { label, start, end } = getSemesterRange();
+  const { totalMinutes, monthly } = await computeUsageMinutes(facilityId, start, end);
+  return { semesterLabel: label, semesterMinutes: totalMinutes, monthly };
+}
+
+export type FacilityUsageRangeStats = {
+  start: string;
+  end: string;
+  totalMinutes: number;
+  monthly: { month: string; minutes: number }[];
+};
+
+// 담당 선생님이 직접 지정한 기간(start~end, 둘 다 포함)의 누적 대여시간을 집계합니다.
+export async function getFacilityUsageStatsForRange(
+  facilityId: string,
+  start: string,
+  end: string
+): Promise<FacilityUsageRangeStats> {
+  const { totalMinutes, monthly } = await computeUsageMinutes(facilityId, start, end);
+  return { start, end, totalMinutes, monthly };
 }

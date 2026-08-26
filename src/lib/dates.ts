@@ -102,6 +102,13 @@ export function buildMonthGrid(monthStart: Date): CalendarDay[] {
 
 export { addMonths };
 
+// "YYYY-MM-DD" 형식이면서 실제로 존재하는 날짜인지 확인합니다(예: 2026-02-30은 거부).
+export function isValidISODate(value: string | undefined): value is string {
+  if (!value) return false;
+  const parsed = parseISO(value);
+  return isValid(parsed) && toISODate(parsed) === value;
+}
+
 // 1학기: 3~8월, 2학기: 9월~익년 2월
 export function getSemesterRange(reference: Date = new Date()): {
   label: string;
