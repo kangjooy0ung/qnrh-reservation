@@ -13,6 +13,7 @@ export function ReservationModal({
   slots,
   reservation,
   pendingCount = 0,
+  contiguous = true,
   onClose,
 }: {
   facilityId: string;
@@ -22,13 +23,16 @@ export function ReservationModal({
   slots: TimetableSlot[];
   reservation: TimetableReservation | null;
   pendingCount?: number;
+  contiguous?: boolean;
   onClose: () => void;
 }) {
   const first = slots[0];
   const last = slots[slots.length - 1];
   const slotLabel =
     slots.length > 1
-      ? `${first.label}~${last.label} (총 ${slots.length}개 교시, ${first.start_time}~${last.end_time})`
+      ? contiguous
+        ? `${first.label}~${last.label} (총 ${slots.length}개 교시, ${first.start_time}~${last.end_time})`
+        : `${slots.map((s) => s.label).join(", ")} (총 ${slots.length}개 교시, 비연속)`
       : `${first.label} (${first.start_time}~${first.end_time})`;
 
   return (

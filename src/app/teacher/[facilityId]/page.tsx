@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getFacility } from "@/lib/data/facilities";
 import { getAllReservations, getPendingReservationsForFacility } from "@/lib/data/reservations";
 import { TeacherPageHeader } from "@/components/teacher/teacher-page-header";
-import { PendingApplicantGroup } from "@/components/teacher/pending-applicant-group";
+import { PendingApprovalBoard } from "@/components/teacher/pending-approval-board";
 import { FacilityReservationList } from "@/components/teacher/facility-reservation-list";
 import type { ReservationWithRelations } from "@/lib/types";
 
@@ -49,22 +49,7 @@ export default async function TeacherFacilityHomePage({
                 승인 대기 중인 신청이 없습니다.
               </p>
             ) : (
-              <ul className="flex flex-col gap-3">
-                {Array.from(pendingGroups.values()).map((group) => (
-                  <PendingApplicantGroup
-                    key={`${group.reservationDate}__${group.timeSlot?.id}`}
-                    facilityId={facilityId}
-                    reservationDate={group.reservationDate}
-                    timeSlotLabel={group.timeSlot?.label ?? "-"}
-                    timeSlotRange={
-                      group.timeSlot
-                        ? `${group.timeSlot.start_time.slice(0, 5)}~${group.timeSlot.end_time.slice(0, 5)}`
-                        : ""
-                    }
-                    applicants={group.applicants}
-                  />
-                ))}
-              </ul>
+              <PendingApprovalBoard facilityId={facilityId} groups={Array.from(pendingGroups.values())} />
             )}
           </div>
         </section>

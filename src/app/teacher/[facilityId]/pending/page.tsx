@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getFacility } from "@/lib/data/facilities";
 import { getPendingReservationsForFacility } from "@/lib/data/reservations";
 import { TeacherPageHeader } from "@/components/teacher/teacher-page-header";
-import { PendingApplicantGroup } from "@/components/teacher/pending-applicant-group";
+import { PendingApprovalBoard } from "@/components/teacher/pending-approval-board";
 import type { ReservationWithRelations } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +35,7 @@ export default async function TeacherPendingPage({
     <div>
       <TeacherPageHeader
         title="승인 대기 신청"
-        description="같은 시간대에 여러 명이 신청할 수 있습니다. 1건만 승인하면 나머지는 자동 반려됩니다."
+        description="같은 시간대에 여러 명이 신청할 수 있습니다. 1건만 승인하면 나머지는 자동 반려됩니다. 여러 건을 체크해 한 번에 승인할 수도 있습니다."
       />
 
       {!facility.requires_approval ? (
@@ -47,22 +47,7 @@ export default async function TeacherPendingPage({
           승인 대기 중인 신청이 없습니다.
         </p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {Array.from(pendingGroups.values()).map((group) => (
-            <PendingApplicantGroup
-              key={`${group.reservationDate}__${group.timeSlot?.id}`}
-              facilityId={facilityId}
-              reservationDate={group.reservationDate}
-              timeSlotLabel={group.timeSlot?.label ?? "-"}
-              timeSlotRange={
-                group.timeSlot
-                  ? `${group.timeSlot.start_time.slice(0, 5)}~${group.timeSlot.end_time.slice(0, 5)}`
-                  : ""
-              }
-              applicants={group.applicants}
-            />
-          ))}
-        </ul>
+        <PendingApprovalBoard facilityId={facilityId} groups={Array.from(pendingGroups.values())} />
       )}
     </div>
   );
