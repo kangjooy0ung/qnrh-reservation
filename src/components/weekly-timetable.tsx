@@ -31,13 +31,24 @@ export type TimetableReservation = {
 };
 
 type Selection =
-  | { type: "create"; day: TimetableDay; slots: TimetableSlot[]; pendingCount: number }
+  | {
+      type: "create";
+      day: TimetableDay;
+      slots: TimetableSlot[];
+      pendingCount: number;
+      contiguous: boolean;
+    }
   | { type: "cancel"; day: TimetableDay; slot: TimetableSlot; reservation: TimetableReservation };
 
 type DragState = {
   dayIso: string;
   anchorIndex: number;
   currentIndex: number;
+};
+
+type MultiSelectState = {
+  dayIso: string;
+  indices: Set<number>;
 };
 
 export function WeeklyTimetable({
@@ -57,6 +68,8 @@ export function WeeklyTimetable({
 }) {
   const [selected, setSelected] = useState<Selection | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
+  const [multiMode, setMultiMode] = useState(false);
+  const [multiSelection, setMultiSelection] = useState<MultiSelectState | null>(null);
 
   // 슬롯을 점유하는 예약(confirmed/blocked, 최대 1건)과 승인 대기 중인 신청(pending, 여러 건 가능)을 구분합니다.
   const occupyingMap = useMemo(() => {
@@ -159,13 +172,28 @@ export function WeeklyTimetable({
         if (day) {
           const from = Math.min(current.anchorIndex, current.currentIndex);
           const to = Math.max(current.anchorIndex, current.currentIndex);
-          const slots = timeSlots.slice(from, to + 1);
-          if (slots.length > 0) {
-            const pendingCount = slots.reduce(
-              (sum, slot) => sum + (pendingMap.get(`${day.iso}__${slot.id}`)?.length ?? 0),
-              0
-            );
-            setSelected({ type: "create", day, slots, pendingCount });
+
+          if (multiMode) {
+            // 비연속 선택 모드: 클릭한(드래그하지 않은) 교시는 켜고/끄고, 드래그한 범위는 통째로 추가합니다.
+            setMultiSelection((prev) => {
+              const indices = prev && prev.dayIso === day.iso ? new Set(prev.indices) : new Set<number>();
+              if (from === to) {
+                if (indices.has(from)) indices.delete(from);
+                else indices.add(from);
+              } else {
+                for (let i = from; i <= to; i += 1) indices.add(i);
+              }
+              return indices.size > 0 ? { dayIso: day.iso, indices } : null;
+            });
+          } else {
+            const slots = timeSlots.slice(from, to + 1);
+            if (slots.length > 0) {
+              const pendingCount = slots.reduce(
+                (sum, slot) => sum + (pendingMap.get(`${day.iso}__${slot.id}`)?.length ?? 0),
+                0
+              );
+              setSelected({ type: "create", day, slots, pendingCount, contiguous: true });
+            }
           }
         }
       }
@@ -180,7 +208,7 @@ export function WeeklyTimetable({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, [drag, availabilityByDay, weekDays, timeSlots, pendingMap]);
+  }, [drag, availabilityByDay, weekDays, timeSlots, pendingMap, multiMode]);
 
   function handleCellPointerDown(
     day: TimetableDay,
@@ -199,6 +227,29 @@ export function WeeklyTimetable({
 
   return (
     <>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setMultiMode((v) => !v);
+            setMultiSelection(null);
+            setDrag(null);
+          }}
+          className={`inline-flex shrink-0 items-center rounded-lg border-[1.5px] px-4 py-2 text-xs font-medium transition ${
+            multiMode
+              ? "border-sky-400 bg-sky-50 text-sky-700"
+              : "border-sky-200 text-sky-600 hover:bg-sky-50"
+          }`}
+        >
+          {multiMode ? "선택 모드 켜짐 (누르면 종료)" : "떨어진 교시 한번에 예약"}
+        </button>
+        {multiMode && (
+          <p className="text-[11px] text-slate-400">
+            원하는 교시를 각각 눌러 선택한 뒤, 아래 버튼으로 한 번에 예약하세요.
+          </p>
+        )}
+      </div>
+
       <div
         className={`overflow-x-auto rounded-2xl border border-slate-200 bg-white ${
           drag ? "select-none" : ""
@@ -237,11 +288,16 @@ export function WeeklyTimetable({
                   const occupying = occupyingMap.get(key) ?? null;
                   const pending = pendingMap.get(key) ?? [];
                   const disabled = day.isPast && !occupying && pending.length === 0;
-                  const inDrag =
+                  const inDrag = Boolean(
                     drag &&
                     drag.dayIso === day.iso &&
                     slotIndex >= Math.min(drag.anchorIndex, drag.currentIndex) &&
-                    slotIndex <= Math.max(drag.anchorIndex, drag.currentIndex);
+                    slotIndex <= Math.max(drag.anchorIndex, drag.currentIndex)
+                  );
+                  const isMultiSelected = Boolean(
+                    multiMode && multiSelection?.dayIso === day.iso && multiSelection.indices.has(slotIndex)
+                  );
+                  const highlighted = inDrag || isMultiSelected;
 
                   if (occupying) {
                     const isBlocked = occupying.status === "blocked";
@@ -298,7 +354,7 @@ export function WeeklyTimetable({
                           }
                           style={{ touchAction: "none" }}
                           className={`w-full rounded-lg border px-2 py-2 text-left transition ${
-                            inDrag
+                            highlighted
                               ? "border-emerald-400 bg-emerald-100"
                               : "border-amber-200 bg-amber-50 hover:bg-amber-100"
                           }`}
@@ -307,7 +363,7 @@ export function WeeklyTimetable({
                             {pending.length}명 신청중
                           </p>
                           <p className="truncate text-[11px] text-amber-500">
-                            {inDrag ? "선택됨" : "추가 신청 가능"}
+                            {highlighted ? "선택됨" : "추가 신청 가능"}
                           </p>
                         </button>
                       </td>
@@ -332,12 +388,12 @@ export function WeeklyTimetable({
                         className={`w-full rounded-lg border border-dashed px-2 py-2 text-center text-[11px] transition ${
                           disabled
                             ? "cursor-not-allowed border-slate-100 text-slate-300"
-                            : inDrag
+                            : highlighted
                               ? "border-emerald-400 bg-emerald-100 text-emerald-600"
                               : "border-slate-200 text-slate-400 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-500"
                         }`}
                       >
-                        {disabled ? "마감" : inDrag ? "선택됨" : "예약 가능"}
+                        {disabled ? "마감" : highlighted ? "선택됨" : "예약 가능"}
                       </button>
                       {rejection && !disabled && (
                         <p className="mt-1 truncate text-[10px] text-slate-400" title={rejection.reject_reason ?? undefined}>
@@ -372,6 +428,42 @@ export function WeeklyTimetable({
         </span>
       </div>
 
+      {multiMode && multiSelection && multiSelection.indices.size > 0 && (
+        <div className="sticky bottom-3 mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 shadow-sm">
+          <p className="text-sm font-semibold text-sky-700">
+            {weekDays.find((d) => d.iso === multiSelection.dayIso)?.label}요일{" "}
+            {multiSelection.indices.size}개 교시 선택됨
+          </p>
+          <div className="ml-auto flex gap-2">
+            <button
+              type="button"
+              onClick={() => setMultiSelection(null)}
+              className="rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-medium text-sky-600 hover:bg-sky-100"
+            >
+              선택 초기화
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const day = weekDays.find((d) => d.iso === multiSelection.dayIso);
+                if (!day) return;
+                const indices = Array.from(multiSelection.indices).sort((a, b) => a - b);
+                const slots = indices.map((i) => timeSlots[i]);
+                const contiguous = indices[indices.length - 1] - indices[0] + 1 === indices.length;
+                const pendingCount = slots.reduce(
+                  (sum, slot) => sum + (pendingMap.get(`${day.iso}__${slot.id}`)?.length ?? 0),
+                  0
+                );
+                setSelected({ type: "create", day, slots, pendingCount, contiguous });
+              }}
+              className="rounded-lg bg-sky-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-sky-700"
+            >
+              선택한 교시로 예약하기
+            </button>
+          </div>
+        </div>
+      )}
+
       {selected && selected.type === "create" && (
         <ReservationModal
           facilityId={facilityId}
@@ -381,7 +473,12 @@ export function WeeklyTimetable({
           slots={selected.slots}
           reservation={null}
           pendingCount={selected.pendingCount}
-          onClose={() => setSelected(null)}
+          contiguous={selected.contiguous}
+          onClose={() => {
+            setSelected(null);
+            setMultiSelection(null);
+            setMultiMode(false);
+          }}
         />
       )}
       {selected && selected.type === "cancel" && (
