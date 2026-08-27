@@ -102,26 +102,9 @@ export function buildMonthGrid(monthStart: Date): CalendarDay[] {
 
 export { addMonths };
 
-// 1학기: 3~8월, 2학기: 9월~익년 2월
-export function getSemesterRange(reference: Date = new Date()): {
-  label: string;
-  start: string; // ISO date
-  end: string; // ISO date
-} {
-  const year = reference.getFullYear();
-  const month = reference.getMonth() + 1; // 1-12
-  if (month >= 3 && month <= 8) {
-    return {
-      label: `${year}년 1학기`,
-      start: `${year}-03-01`,
-      end: toISODate(endOfMonth(new Date(year, 7, 1))),
-    };
-  }
-  const startYear = month >= 9 ? year : year - 1;
-  const endYear = startYear + 1;
-  return {
-    label: `${startYear}년 2학기`,
-    start: `${startYear}-09-01`,
-    end: toISODate(endOfMonth(new Date(endYear, 1, 1))),
-  };
+// "YYYY-MM-DD" 형식이면서 실제로 존재하는 날짜인지 확인합니다(예: 2026-02-30은 거부).
+export function isValidISODate(value: string | undefined): value is string {
+  if (!value) return false;
+  const parsed = parseISO(value);
+  return isValid(parsed) && toISODate(parsed) === value;
 }
