@@ -1,6 +1,5 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import { getSchoolYearRange } from "@/lib/dates";
 import type { ReservationWithRelations } from "@/lib/types";
 
 const RELATION_SELECT =
@@ -140,19 +139,9 @@ export async function getTodayReservationCount(today: string): Promise<number> {
   return count ?? 0;
 }
 
-function slotMinutes(start: string, end: string): number {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  return eh * 60 + em - (sh * 60 + sm);
-}
+const MINUTES_PER_RESERVATION = 60; // 실제 교시 길이와 무관하게, 확정 예약 1건을 1시간으로 집계합니다.
 
-export type FacilityUsageStats = {
-  yearLabel: string;
-  yearMinutes: number;
-  monthly: { month: string; minutes: number }[];
-};
-
-// 확정된 예약을 날짜 범위로 조회해 월별/총 누적 대여시간(분)을 집계합니다.
+// 확정된 예약을 날짜 범위로 조회해 건수 기준(1건 = 1시간)으로 월별/총 누적 대여시간(분)을 집계합니다.
 async function computeUsageMinutes(
   facilityId: string,
   start: string,
@@ -161,7 +150,7 @@ async function computeUsageMinutes(
   const supabase = getSupabaseServer();
   const { data, error } = await supabase
     .from("reservations")
-    .select("reservation_date, time_slot:time_slots(start_time,end_time)")
+    .select("reservation_date")
     .eq("facility_id", facilityId)
     .eq("status", "confirmed")
     .gte("reservation_date", start)
@@ -170,16 +159,10 @@ async function computeUsageMinutes(
 
   const monthlyMap = new Map<string, number>();
   let totalMinutes = 0;
-  for (const row of (data ?? []) as unknown as {
-    reservation_date: string;
-    time_slot: { start_time: string; end_time: string } | null;
-  }[]) {
-    if (!row.time_slot) continue;
-    const minutes = slotMinutes(row.time_slot.start_time, row.time_slot.end_time);
-    if (minutes <= 0) continue;
+  for (const row of (data ?? []) as { reservation_date: string }[]) {
     const month = row.reservation_date.slice(0, 7);
-    monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + minutes);
-    totalMinutes += minutes;
+    monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + MINUTES_PER_RESERVATION);
+    totalMinutes += MINUTES_PER_RESERVATION;
   }
 
   const monthly = Array.from(monthlyMap.entries())
@@ -187,13 +170,6 @@ async function computeUsageMinutes(
     .map(([month, minutes]) => ({ month, minutes }));
 
   return { totalMinutes, monthly };
-}
-
-// 확정된 예약 기준으로 이번 학년도(3월 1일~익년 2월 말) 누적 대여시간을 월별로 집계합니다.
-export async function getFacilityUsageStats(facilityId: string): Promise<FacilityUsageStats> {
-  const { label, start, end } = getSchoolYearRange();
-  const { totalMinutes, monthly } = await computeUsageMinutes(facilityId, start, end);
-  return { yearLabel: label, yearMinutes: totalMinutes, monthly };
 }
 
 export type FacilityUsageRangeStats = {

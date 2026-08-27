@@ -21,9 +21,9 @@ export function FacilityUsageRangeView({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <p className="text-sm font-semibold text-slate-800">기간 지정 누적 대여시간</p>
+      <p className="text-sm font-semibold text-slate-800">기간 조회</p>
       <p className="mt-1 text-xs text-slate-400">
-        시작일과 종료일을 지정하면 그 기간(둘 다 포함)의 확정 예약 누적 시간을 볼 수 있습니다.
+        시작일과 종료일(둘 다 포함)을 지정해 조회하세요. 확정 예약 1건은 1시간으로 집계됩니다.
       </p>
 
       <form className="mt-3 flex flex-wrap items-end gap-3">
