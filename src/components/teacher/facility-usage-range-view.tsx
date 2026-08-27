@@ -21,10 +21,8 @@ export function FacilityUsageRangeView({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <p className="text-sm font-semibold text-slate-800">기간 조회</p>
-      <p className="mt-1 text-xs text-slate-400">
-        시작일과 종료일(둘 다 포함)을 지정해 조회하세요. 확정 예약 1건은 1시간으로 집계됩니다.
-      </p>
+      <p className="text-base font-semibold text-slate-800">기간 조회</p>
+      <p className="mt-1 text-xs text-slate-500">시작일과 종료일(둘 다 포함)을 지정해 조회하세요.</p>
 
       <form className="mt-3 flex flex-wrap items-end gap-3">
         <Field label="시작일">
@@ -35,7 +33,7 @@ export function FacilityUsageRangeView({
         </Field>
         <button
           type="submit"
-          className="rounded-lg bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          className="rounded-lg bg-slate-700 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800"
         >
           조회
         </button>
@@ -87,7 +85,7 @@ export function FacilityUsageRangeView({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1 text-xs font-medium text-slate-500">
+    <label className="flex flex-col gap-1 text-xs font-medium text-slate-800">
       {label}
       {children}
     </label>
