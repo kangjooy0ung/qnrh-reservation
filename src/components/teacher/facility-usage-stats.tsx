@@ -12,16 +12,16 @@ export function FacilityUsageStatsView({ stats }: { stats: FacilityUsageStats })
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="flex items-baseline justify-between">
-        <p className="text-sm font-semibold text-slate-800">{stats.semesterLabel} 누적 대여시간</p>
-        <p className="text-lg font-bold text-emerald-600">{formatMinutes(stats.semesterMinutes)}</p>
+        <p className="text-sm font-semibold text-slate-800">{stats.yearLabel} 누적 대여시간</p>
+        <p className="text-lg font-bold text-emerald-600">{formatMinutes(stats.yearMinutes)}</p>
       </div>
 
       {stats.monthly.length === 0 ? (
-        <p className="mt-4 text-center text-xs text-slate-400">이번 학기 확정 예약이 아직 없습니다.</p>
+        <p className="mt-4 text-center text-xs text-slate-400">이번 학년도 확정 예약이 아직 없습니다.</p>
       ) : (
         <ul className="mt-4 flex flex-col gap-2">
           {stats.monthly.map((m) => {
-            const ratio = stats.semesterMinutes > 0 ? (m.minutes / stats.semesterMinutes) * 100 : 0;
+            const ratio = stats.yearMinutes > 0 ? (m.minutes / stats.yearMinutes) * 100 : 0;
             return (
               <li key={m.month} className="flex items-center gap-3 text-xs">
                 <span className="w-14 shrink-0 text-slate-500">{m.month}</span>
