@@ -109,26 +109,18 @@ export function isValidISODate(value: string | undefined): value is string {
   return isValid(parsed) && toISODate(parsed) === value;
 }
 
-// 1학기: 3~8월, 2학기: 9월~익년 2월
-export function getSemesterRange(reference: Date = new Date()): {
+// 학년도: 3월 1일 ~ 익년 2월 말일 (1년 단위로 초기화)
+export function getSchoolYearRange(reference: Date = new Date()): {
   label: string;
   start: string; // ISO date
   end: string; // ISO date
 } {
   const year = reference.getFullYear();
   const month = reference.getMonth() + 1; // 1-12
-  if (month >= 3 && month <= 8) {
-    return {
-      label: `${year}년 1학기`,
-      start: `${year}-03-01`,
-      end: toISODate(endOfMonth(new Date(year, 7, 1))),
-    };
-  }
-  const startYear = month >= 9 ? year : year - 1;
-  const endYear = startYear + 1;
+  const startYear = month >= 3 ? year : year - 1;
   return {
-    label: `${startYear}년 2학기`,
-    start: `${startYear}-09-01`,
-    end: toISODate(endOfMonth(new Date(endYear, 1, 1))),
+    label: `${startYear}학년도`,
+    start: `${startYear}-03-01`,
+    end: toISODate(endOfMonth(new Date(startYear + 1, 1, 1))),
   };
 }

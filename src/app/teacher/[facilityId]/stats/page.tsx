@@ -32,7 +32,7 @@ export default async function TeacherStatsPage({
     <div>
       <TeacherPageHeader
         title="누적 대여시간"
-        description="확정된 예약 기준으로 학기·월별 누적 사용시간을 보여줍니다."
+        description="확정된 예약 기준으로 학년도(3월~익년 2월)·월별 누적 사용시간을 보여줍니다."
       />
       <FacilityUsageStatsView stats={stats} />
 

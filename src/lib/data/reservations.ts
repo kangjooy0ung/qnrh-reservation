@@ -1,6 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase-server";
-import { getSemesterRange } from "@/lib/dates";
+import { getSchoolYearRange } from "@/lib/dates";
 import type { ReservationWithRelations } from "@/lib/types";
 
 const RELATION_SELECT =
@@ -147,8 +147,8 @@ function slotMinutes(start: string, end: string): number {
 }
 
 export type FacilityUsageStats = {
-  semesterLabel: string;
-  semesterMinutes: number;
+  yearLabel: string;
+  yearMinutes: number;
   monthly: { month: string; minutes: number }[];
 };
 
@@ -189,11 +189,11 @@ async function computeUsageMinutes(
   return { totalMinutes, monthly };
 }
 
-// 확정된 예약 기준으로 이번 학기 누적 대여시간을 월별로 집계합니다.
+// 확정된 예약 기준으로 이번 학년도(3월 1일~익년 2월 말) 누적 대여시간을 월별로 집계합니다.
 export async function getFacilityUsageStats(facilityId: string): Promise<FacilityUsageStats> {
-  const { label, start, end } = getSemesterRange();
+  const { label, start, end } = getSchoolYearRange();
   const { totalMinutes, monthly } = await computeUsageMinutes(facilityId, start, end);
-  return { semesterLabel: label, semesterMinutes: totalMinutes, monthly };
+  return { yearLabel: label, yearMinutes: totalMinutes, monthly };
 }
 
 export type FacilityUsageRangeStats = {
